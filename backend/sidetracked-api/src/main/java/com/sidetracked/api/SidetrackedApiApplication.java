@@ -1,0 +1,13 @@
+package com.sidetracked.api;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class SidetrackedApiApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SidetrackedApiApplication.class, args);
+	}
+
+}
