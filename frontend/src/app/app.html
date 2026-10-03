@@ -1,13 +1,60 @@
 <main class="app-shell">
 
-  <header>
-    <p>QUEST LOG // ONLINE</p>
+  <!-- =========================
+       HEADER / PLAYER
+       ========================= -->
+
+  <header class="app-header">
+
+    <p class="eyebrow">
+      QUEST LOG // ONLINE
+    </p>
 
     <h1>SideTracked</h1>
 
-    <p>Turn getting sidetracked into progress.</p>
+    <p class="tagline">
+      Turn getting sidetracked into progress.
+    </p>
 
-    <strong>⭐ {{ xp }} XP</strong>
+    <div class="player-stats">
+
+      <div class="level-info">
+
+        <span class="level-label">
+          LEVEL {{ level }}
+        </span>
+
+        <span class="xp-total">
+          {{ xp }} XP
+        </span>
+
+      </div>
+
+      <div class="xp-bar">
+        <div
+          class="xp-bar-fill"
+          [style.width.%]="levelProgress">
+        </div>
+      </div>
+
+      <div class="xp-details">
+
+        <span>
+          {{ xp - currentLevelStartXp }}
+          /
+          {{ nextLevelXp - currentLevelStartXp }}
+          XP
+        </span>
+
+        <span>
+          {{ completedQuestCount }}
+          QUESTS COMPLETED
+        </span>
+
+      </div>
+
+    </div>
+
   </header>
 
 
@@ -16,6 +63,10 @@
        ========================= -->
 
   <section class="quest-creator">
+
+    <p class="section-label">
+      QUEST CREATOR
+    </p>
 
     <h2>New Quest</h2>
 
@@ -34,22 +85,35 @@
       >
 
       <select [(ngModel)]="newQuestType">
-        <option>⚔️ SIDE QUEST</option>
-        <option>🔥 MAIN QUEST</option>
-        <option>🐈 BOSS ENCOUNTER</option>
-        <option>🧪 EXPERIMENT</option>
-        <option>🎴 COLLECTION QUEST</option>
+        <option>SIDE QUEST</option>
+        <option>MAIN QUEST</option>
+        <option>BOSS ENCOUNTER</option>
+        <option>EXPERIMENT</option>
+        <option>COLLECTION QUEST</option>
       </select>
 
       <select [(ngModel)]="newQuestDifficulty">
-        <option value="easy">Easy // +10 XP</option>
-        <option value="normal">Normal // +20 XP</option>
-        <option value="hard">Hard // +35 XP</option>
-        <option value="legendary">Legendary // +50 XP</option>
+
+        <option value="easy">
+          Easy // +10 XP
+        </option>
+
+        <option value="normal">
+          Normal // +20 XP
+        </option>
+
+        <option value="hard">
+          Hard // +35 XP
+        </option>
+
+        <option value="legendary">
+          Legendary // +50 XP
+        </option>
+
       </select>
 
       <button (click)="createQuest()">
-        + Add Quest
+        + ADD QUEST
       </button>
 
     </div>
@@ -63,12 +127,18 @@
 
   <section class="quest-board">
 
+    <p class="section-label">
+      QUEST LOG
+    </p>
+
     <h2>Active Quests</h2>
 
     @if (quests.length === 0) {
+
       <p class="empty-state">
         Quest log suspiciously empty.
       </p>
+
     }
 
     @for (quest of quests; track quest.id) {
@@ -77,28 +147,41 @@
 
         <article class="quest-card">
 
-          <span>{{ quest.type }}</span>
+          <span class="quest-type">
+            {{ quest.type }}
+          </span>
 
-          <h3>{{ quest.title }}</h3>
+          <h3>
+            {{ quest.title }}
+          </h3>
 
-          <p>{{ quest.description }}</p>
+          <p>
+            {{ quest.description }}
+          </p>
 
           <div class="quest-meta">
-            <span>{{ quest.priority }}</span>
-            <strong>+{{ quest.xp }} XP</strong>
+
+            <span>
+              {{ quest.priority }}
+            </span>
+
+            <strong>
+              +{{ quest.xp }} XP
+            </strong>
+
           </div>
 
           <div class="quest-actions">
 
-            <button (click)="completeQuest(quest)">
-              ✓ Complete
+            <button
+              (click)="completeQuest(quest)">
+              COMPLETE
             </button>
 
             <button
               class="danger-button"
-              (click)="deleteQuest(quest)"
-            >
-              Delete
+              (click)="deleteQuest(quest)">
+              DELETE
             </button>
 
           </div>
@@ -118,6 +201,10 @@
 
   <section class="completed-section">
 
+    <p class="section-label">
+      QUEST ARCHIVE
+    </p>
+
     <h2>Completed</h2>
 
     @for (quest of quests; track quest.id) {
@@ -127,7 +214,7 @@
         <div class="completed-quest">
 
           <span>
-            ✓ {{ quest.title }}
+            {{ quest.title }}
           </span>
 
           <span>
@@ -136,9 +223,8 @@
 
           <button
             class="danger-button small-button"
-            (click)="deleteQuest(quest)"
-          >
-            Delete
+            (click)="deleteQuest(quest)">
+            DELETE
           </button>
 
         </div>
@@ -151,46 +237,236 @@
 
 
   <!-- =========================
-       CHAOS BUTTON
+       CURIOSITY ENGINE
        ========================= -->
 
-  <hr>
+  <section class="curiosity-engine">
 
-  <button
-    class="sidetracked-button"
-    (click)="getSidetracked()"
-  >
-    🌀 I GOT SIDETRACKED
-  </button>
+    <div class="curiosity-heading">
+
+      <p class="section-label">
+        CURIOSITY ENGINE
+      </p>
+
+      <h2>
+        Follow Something Interesting.
+      </h2>
+
+      <p>
+        No productivity required.
+        Just curiosity.
+      </p>
+
+    </div>
+
+
+    <!-- GET SIDETRACKED -->
+
+    <button
+      class="sidetracked-button"
+      (click)="getSidetracked()"
+      [disabled]="followingRabbit">
+
+      GET SIDETRACKED
+
+    </button>
+
+
+    <!-- =========================
+         FOLLOW THE WHITE RABBIT
+         ========================= -->
+
+    @if (followingRabbit) {
+
+      <div class="rabbit-loading">
+
+        <p class="rabbit-loading-title">
+          FOLLOWING THE WHITE RABBIT...
+        </p>
+
+        <div class="rabbit-trail">
+
+          <span class="rabbit rabbit-1">
+            🐇
+          </span>
+
+          <span class="rabbit rabbit-2">
+            🐇
+          </span>
+
+          <span class="rabbit rabbit-3">
+            🐇
+          </span>
+
+          <span class="rabbit rabbit-4">
+            🐇
+          </span>
+
+          <span class="rabbit rabbit-5">
+            🐇
+          </span>
+
+        </div>
+
+      </div>
+
+    }
+
+
+    <!-- =========================
+         RABBIT HOLE
+         ========================= -->
+
+    @if (currentRabbitHole) {
+
+      <article class="rabbit-hole-card">
+
+        <div class="rabbit-hole-header">
+
+          <span class="rabbit-number">
+            RABBIT HOLE //
+            {{ formatRabbitHoleId(currentRabbitHole.id) }}
+          </span>
+
+          <span class="rabbit-status">
+            {{ currentRabbitHole.status }}
+          </span>
+
+        </div>
+
+
+        <div class="rabbit-world">
+          WORLD // {{ currentRabbitHole.world }}
+        </div>
+
+
+        <h2 class="rabbit-title">
+          {{ currentRabbitHole.title }}
+        </h2>
+
+
+        <p class="rabbit-hook">
+          {{ currentRabbitHole.hook }}
+        </p>
+
+
+        <div class="rabbit-section">
+
+          <p class="rabbit-section-title">
+            YOUR RABBIT HOLE
+          </p>
+
+          <p>
+            {{ currentRabbitHole.researchPrompt }}
+          </p>
+
+        </div>
+
+
+        <div class="rabbit-section">
+
+          <p class="rabbit-section-title">
+            START HERE
+          </p>
+
+          <p class="coming-soon">
+            Sources are being connected to the
+            Curiosity Engine next.
+          </p>
+
+        </div>
+
+
+        <div class="rabbit-reward">
+
+          RESEARCH REWARD //
+          +{{ currentRabbitHole.xp }} XP
+
+        </div>
+
+
+        <div class="rabbit-actions">
+
+          <button
+            class="secondary-button"
+            (click)="saveRabbitHole()">
+
+            SAVE FOR LATER
+
+          </button>
+
+          <button
+            (click)="exploreRabbitHole()">
+
+            EXPLORE
+
+          </button>
+
+        </div>
+
+      </article>
+
+    }
+
+  </section>
 
 
   <!-- =========================
-       RANDOM ENCOUNTER
+       RABBIT HOLE LIBRARY
        ========================= -->
 
-  @if (currentEncounter) {
+  @if (rabbitHoleLibrary.length > 0) {
 
-    <section class="encounter-card">
+    <section class="rabbit-library">
 
-      <p>⚠ RANDOM ENCOUNTER</p>
+      <p class="section-label">
+        PERSONAL ARCHIVE
+      </p>
 
-      <h2>{{ currentEncounter.title }}</h2>
+      <h2>
+        Rabbit Holes
+      </h2>
 
-      <p>{{ currentEncounter.mission }}</p>
+      <div class="library-grid">
 
-      <strong>
-        Reward: +{{ currentEncounter.xp }} XP
-      </strong>
+        @for (
+          rabbitHole of rabbitHoleLibrary;
+          track rabbitHole.id
+        ) {
 
-      <div class="encounter-actions">
+          <article class="library-card">
 
-        <button (click)="completeEncounter()">
-          ✓ Mission Complete
-        </button>
+            <div class="library-card-top">
 
-        <button (click)="dismissEncounter()">
-          Return to Quest
-        </button>
+              <span>
+                {{ rabbitHole.world }}
+              </span>
+
+              <span>
+                {{ rabbitHole.status }}
+              </span>
+
+            </div>
+
+            <h3>
+              {{ rabbitHole.title }}
+            </h3>
+
+            <p>
+              {{ rabbitHole.researchPrompt }}
+            </p>
+
+            <button
+              class="text-button"
+              (click)="openRabbitHole(rabbitHole)">
+
+              OPEN RABBIT HOLE
+
+            </button>
+
+          </article>
+
+        }
 
       </div>
 
