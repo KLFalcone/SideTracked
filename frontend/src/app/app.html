@@ -1,41 +1,201 @@
 <main class="app-shell">
+
   <header>
-    <p class="eyebrow">QUEST LOG // ONLINE</p>
+    <p>QUEST LOG // ONLINE</p>
+
     <h1>SideTracked</h1>
+
     <p>Turn getting sidetracked into progress.</p>
+
+    <strong>⭐ {{ xp }} XP</strong>
   </header>
 
+
+  <!-- =========================
+       NEW QUEST
+       ========================= -->
+
+  <section class="quest-creator">
+
+    <h2>New Quest</h2>
+
+    <div class="quest-form">
+
+      <input
+        type="text"
+        placeholder="What needs doing?"
+        [(ngModel)]="newQuestTitle"
+      >
+
+      <input
+        type="text"
+        placeholder="Quest details..."
+        [(ngModel)]="newQuestDescription"
+      >
+
+      <select [(ngModel)]="newQuestType">
+        <option>⚔️ SIDE QUEST</option>
+        <option>🔥 MAIN QUEST</option>
+        <option>🐈 BOSS ENCOUNTER</option>
+        <option>🧪 EXPERIMENT</option>
+        <option>🎴 COLLECTION QUEST</option>
+      </select>
+
+      <select [(ngModel)]="newQuestDifficulty">
+        <option value="easy">Easy // +10 XP</option>
+        <option value="normal">Normal // +20 XP</option>
+        <option value="hard">Hard // +35 XP</option>
+        <option value="legendary">Legendary // +50 XP</option>
+      </select>
+
+      <button (click)="createQuest()">
+        + Add Quest
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       ACTIVE QUESTS
+       ========================= -->
+
   <section class="quest-board">
+
     <h2>Active Quests</h2>
 
-    <article class="quest-card">
-      <div>
-        <span>🔥 MAIN QUEST</span>
-        <h3>Survive Tomorrow's Interview Prep</h3>
-        <p>Brush up on Angular, Spring Boot, MySQL, and REST APIs.</p>
-      </div>
+    @if (quests.length === 0) {
+      <p class="empty-state">
+        Quest log suspiciously empty.
+      </p>
+    }
 
-      <button>Complete</button>
-    </article>
+    @for (quest of quests; track quest.id) {
 
-    <article class="quest-card">
-      <div>
-        <span>🐈 BOSS ENCOUNTER</span>
-        <h3>The Nux Tax</h3>
-        <p>Medication → tribute immediately afterward.</p>
-      </div>
+      @if (!quest.completed) {
 
-      <button>Complete</button>
-    </article>
+        <article class="quest-card">
 
-    <article class="quest-card">
-      <div>
-        <span>🛠️ SIDE QUEST</span>
-        <h3>Ender-5 Max: The Hotend Strikes Back</h3>
-        <p>Continue investigating the K2 hotend setup.</p>
-      </div>
+          <span>{{ quest.type }}</span>
 
-      <button>Complete</button>
-    </article>
+          <h3>{{ quest.title }}</h3>
+
+          <p>{{ quest.description }}</p>
+
+          <div class="quest-meta">
+            <span>{{ quest.priority }}</span>
+            <strong>+{{ quest.xp }} XP</strong>
+          </div>
+
+          <div class="quest-actions">
+
+            <button (click)="completeQuest(quest)">
+              ✓ Complete
+            </button>
+
+            <button
+              class="danger-button"
+              (click)="deleteQuest(quest)"
+            >
+              Delete
+            </button>
+
+          </div>
+
+        </article>
+
+      }
+
+    }
+
   </section>
+
+
+  <!-- =========================
+       COMPLETED QUESTS
+       ========================= -->
+
+  <section class="completed-section">
+
+    <h2>Completed</h2>
+
+    @for (quest of quests; track quest.id) {
+
+      @if (quest.completed) {
+
+        <div class="completed-quest">
+
+          <span>
+            ✓ {{ quest.title }}
+          </span>
+
+          <span>
+            +{{ quest.xp }} XP
+          </span>
+
+          <button
+            class="danger-button small-button"
+            (click)="deleteQuest(quest)"
+          >
+            Delete
+          </button>
+
+        </div>
+
+      }
+
+    }
+
+  </section>
+
+
+  <!-- =========================
+       CHAOS BUTTON
+       ========================= -->
+
+  <hr>
+
+  <button
+    class="sidetracked-button"
+    (click)="getSidetracked()"
+  >
+    🌀 I GOT SIDETRACKED
+  </button>
+
+
+  <!-- =========================
+       RANDOM ENCOUNTER
+       ========================= -->
+
+  @if (currentEncounter) {
+
+    <section class="encounter-card">
+
+      <p>⚠ RANDOM ENCOUNTER</p>
+
+      <h2>{{ currentEncounter.title }}</h2>
+
+      <p>{{ currentEncounter.mission }}</p>
+
+      <strong>
+        Reward: +{{ currentEncounter.xp }} XP
+      </strong>
+
+      <div class="encounter-actions">
+
+        <button (click)="completeEncounter()">
+          ✓ Mission Complete
+        </button>
+
+        <button (click)="dismissEncounter()">
+          Return to Quest
+        </button>
+
+      </div>
+
+    </section>
+
+  }
+
 </main>

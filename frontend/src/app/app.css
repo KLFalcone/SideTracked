@@ -1,0 +1,386 @@
+/* =========================
+   SIDETRACKED // BASE THEME
+   ========================= */
+
+:host {
+  display: block;
+
+  --bg: #0d0f14;
+  --panel: #171a22;
+  --panel-light: #20242f;
+  --border: #343a49;
+  --text: #f1f3f7;
+  --muted: #9ca3b4;
+  --accent: #8b5cf6;
+  --accent-hover: #a78bfa;
+
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+
+/* =========================
+   APP
+   ========================= */
+
+.app-shell {
+  width: min(900px, 92%);
+  margin: 0 auto;
+  padding: 40px 0 80px;
+}
+
+
+/* =========================
+   HEADER
+   ========================= */
+
+header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 24px;
+  margin-bottom: 30px;
+}
+
+header > p:first-child {
+  color: var(--accent-hover);
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+h1 {
+  font-size: 42px;
+  margin: 10px 0;
+  letter-spacing: -1px;
+}
+
+header p {
+  color: var(--muted);
+}
+
+header strong {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+
+/* =========================
+   HEADINGS
+   ========================= */
+
+h2 {
+  margin-top: 32px;
+  font-size: 22px;
+}
+
+h3 {
+  margin: 10px 0;
+}
+
+
+/* =========================
+   NEW QUEST
+   ========================= */
+
+.quest-creator {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.quest-creator h2 {
+  margin-top: 0;
+}
+
+input {
+  background: #0f1117;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 11px 12px;
+  margin-right: 8px;
+  margin-bottom: 10px;
+  outline: none;
+}
+
+input:focus {
+  border-color: var(--accent);
+}
+
+input:first-of-type {
+  width: 35%;
+}
+
+input:nth-of-type(2) {
+  width: 45%;
+}
+
+
+/* =========================
+   BUTTONS
+   ========================= */
+
+button {
+  background: var(--accent);
+  border: 1px solid var(--accent-hover);
+  color: white;
+  padding: 9px 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--accent-hover);
+}
+
+
+/* =========================
+   QUEST CARDS
+   ========================= */
+
+.quest-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  padding: 18px;
+  margin: 12px 0;
+}
+
+.quest-card > span {
+  color: var(--accent-hover);
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.quest-card p {
+  color: var(--muted);
+}
+
+.quest-card strong {
+  color: #fbbf24;
+}
+
+
+/* =========================
+   COMPLETED
+   ========================= */
+
+.quest-board + section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 0 18px 12px;
+  margin: 25px 0;
+}
+
+.quest-board + section p {
+  color: var(--muted);
+}
+
+
+/* =========================
+   RANDOM ENCOUNTERS
+   ========================= */
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 30px 0;
+}
+
+.encounter-card {
+  margin-top: 25px;
+  padding: 20px;
+  background: var(--panel-light);
+  border: 1px solid var(--accent);
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.15);
+}
+
+.encounter-card > p:first-child {
+  color: var(--accent-hover);
+  font-family: "Courier New", monospace;
+  letter-spacing: 1px;
+}
+
+.encounter-card button {
+  margin-right: 8px;
+}
+
+
+/* =========================
+   MOBILE / SMALL WINDOWS
+   ========================= */
+
+@media (max-width: 700px) {
+
+  .app-shell {
+    width: 94%;
+    padding-top: 20px;
+  }
+
+  input:first-of-type,
+  input:nth-of-type(2) {
+    width: 100%;
+  }
+
+  button {
+    margin-top: 4px;
+  }
+}
+/* =========================
+   QUEST FORM V2
+   ========================= */
+
+.quest-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.quest-form input,
+.quest-form select {
+  width: 100%;
+  margin: 0;
+}
+
+select {
+  background: #0f1117;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 11px 12px;
+  outline: none;
+}
+
+select:focus {
+  border-color: var(--accent);
+}
+
+.quest-form button {
+  grid-column: 1 / -1;
+}
+
+
+/* Quest information */
+
+.quest-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-top: 16px;
+
+  font-family: "Courier New", monospace;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.quest-meta span {
+  color: var(--muted);
+}
+
+.quest-meta strong {
+  color: #fbbf24;
+}
+
+
+/* Quest buttons */
+
+.quest-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.danger-button {
+  background: transparent;
+  border-color: #7f3f4a;
+  color: #e899a5;
+}
+
+.danger-button:hover {
+  background: #562d35;
+}
+
+.small-button {
+  padding: 5px 9px;
+  font-size: 11px;
+}
+
+
+/* Completed quests */
+
+.completed-section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 18px;
+  margin: 25px 0;
+}
+
+.completed-section h2 {
+  margin-top: 0;
+}
+
+.completed-quest {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 15px;
+  align-items: center;
+
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+
+  color: var(--muted);
+}
+
+.completed-quest:last-child {
+  border-bottom: none;
+}
+
+
+/* Empty quest log */
+
+.empty-state {
+  color: var(--muted);
+  font-style: italic;
+  padding: 20px 0;
+}
+
+
+/* Chaos */
+
+.sidetracked-button {
+  margin-bottom: 0;
+}
+
+.encounter-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+
+/* Responsive form */
+
+@media (max-width: 700px) {
+
+  .quest-form {
+    grid-template-columns: 1fr;
+  }
+
+  .quest-form button {
+    grid-column: auto;
+  }
+
+  .completed-quest {
+    grid-template-columns: 1fr;
+  }
+}
