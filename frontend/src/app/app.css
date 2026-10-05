@@ -1,27 +1,46 @@
 /* =========================
-   SIDETRACKED // BASE THEME
+   SIDETRACKED // SYSTEM
    ========================= */
 
 :host {
   display: block;
 
-  --bg: #0d0f14;
-  --panel: #171a22;
-  --panel-light: #20242f;
-  --border: #343a49;
-  --text: #f1f3f7;
-  --muted: #9ca3b4;
+  --bg: #0b0d12;
+  --panel: #14171f;
+  --panel-light: #1a1e28;
+  --panel-dark: #0e1117;
+
+  --border: #303644;
+  --border-soft: #242a36;
+
+  --text: #f2f3f5;
+  --muted: #929bad;
+  --dim: #626c80;
+
   --accent: #8b5cf6;
-  --accent-hover: #a78bfa;
+  --accent-light: #aa8aff;
+  --accent-dark: #6d3ed8;
+
+  --terminal: #a78bfa;
 
   min-height: 100vh;
   background: var(--bg);
   color: var(--text);
-  font-family: Arial, Helvetica, sans-serif;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
 }
 
 * {
   box-sizing: border-box;
+}
+
+button,
+input,
+select {
+  font: inherit;
 }
 
 
@@ -30,55 +49,38 @@
    ========================= */
 
 .app-shell {
-  width: min(900px, 92%);
+  width: min(960px, 92%);
   margin: 0 auto;
-  padding: 40px 0 80px;
+  padding: 42px 0 100px;
 }
 
 
 /* =========================
-   HEADER
+   SHARED TYPOGRAPHY
    ========================= */
 
-header {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 24px;
-  margin-bottom: 30px;
-}
+.section-label,
+.eyebrow {
+  margin: 0 0 10px;
 
-header > p:first-child {
-  color: var(--accent-hover);
+  color: var(--accent-light);
+
   font-family: "Courier New", monospace;
-  font-size: 13px;
-  letter-spacing: 2px;
-  margin: 0;
+  font-size: 12px;
+
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
 }
 
 h1 {
-  font-size: 42px;
   margin: 10px 0;
+
+  font-size: 42px;
   letter-spacing: -1px;
 }
 
-header p {
-  color: var(--muted);
-}
-
-header strong {
-  display: inline-block;
-  margin-top: 8px;
-  padding: 8px 12px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-}
-
-
-/* =========================
-   HEADINGS
-   ========================= */
-
 h2 {
-  margin-top: 32px;
+  margin: 28px 0 14px;
   font-size: 22px;
 }
 
@@ -86,163 +88,121 @@ h3 {
   margin: 10px 0;
 }
 
+p {
+  line-height: 1.55;
+}
+
 
 /* =========================
-   NEW QUEST
+   HEADER
+   ========================= */
+
+.app-header {
+  padding-bottom: 28px;
+  margin-bottom: 30px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.tagline {
+  color: var(--muted);
+}
+
+
+/* =========================
+   PLAYER PROGRESSION
+   ========================= */
+
+.player-stats {
+  width: 100%;
+  max-width: 520px;
+
+  margin-top: 20px;
+}
+
+.level-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 8px;
+}
+
+.level-label {
+  color: var(--accent-light);
+
+  font-family: "Courier New", monospace;
+  font-size: 0.8rem;
+  font-weight: bold;
+
+  letter-spacing: 2px;
+}
+
+.xp-total {
+  font-weight: bold;
+}
+
+.xp-bar {
+  width: 100%;
+  height: 11px;
+
+  overflow: hidden;
+
+  background: #12151d;
+  border: 1px solid var(--border);
+}
+
+.xp-bar-fill {
+  height: 100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--accent-dark),
+      var(--accent-light)
+    );
+
+  transition: width 0.35s ease;
+}
+
+.xp-details {
+  display: flex;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-top: 7px;
+
+  color: var(--muted);
+
+  font-family: "Courier New", monospace;
+  font-size: 0.72rem;
+}
+
+
+/* =========================
+   QUEST CREATOR
    ========================= */
 
 .quest-creator {
+  margin-bottom: 30px;
+  padding: 20px;
+
   background: var(--panel);
   border: 1px solid var(--border);
-  padding: 20px;
-  margin-bottom: 30px;
 }
 
 .quest-creator h2 {
   margin-top: 0;
 }
 
-input {
-  background: #0f1117;
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 11px 12px;
-  margin-right: 8px;
-  margin-bottom: 10px;
-  outline: none;
-}
-
-input:focus {
-  border-color: var(--accent);
-}
-
-input:first-of-type {
-  width: 35%;
-}
-
-input:nth-of-type(2) {
-  width: 45%;
-}
-
-
-/* =========================
-   BUTTONS
-   ========================= */
-
-button {
-  background: var(--accent);
-  border: 1px solid var(--accent-hover);
-  color: white;
-  padding: 9px 14px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-button:hover {
-  background: var(--accent-hover);
-}
-
-
-/* =========================
-   QUEST CARDS
-   ========================= */
-
-.quest-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
-  padding: 18px;
-  margin: 12px 0;
-}
-
-.quest-card > span {
-  color: var(--accent-hover);
-  font-family: "Courier New", monospace;
-  font-size: 12px;
-  letter-spacing: 1px;
-}
-
-.quest-card p {
-  color: var(--muted);
-}
-
-.quest-card strong {
-  color: #fbbf24;
-}
-
-
-/* =========================
-   COMPLETED
-   ========================= */
-
-.quest-board + section {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  padding: 0 18px 12px;
-  margin: 25px 0;
-}
-
-.quest-board + section p {
-  color: var(--muted);
-}
-
-
-/* =========================
-   RANDOM ENCOUNTERS
-   ========================= */
-
-hr {
-  border: 0;
-  border-top: 1px solid var(--border);
-  margin: 30px 0;
-}
-
-.encounter-card {
-  margin-top: 25px;
-  padding: 20px;
-  background: var(--panel-light);
-  border: 1px solid var(--accent);
-  box-shadow: 0 0 14px rgba(139, 92, 246, 0.15);
-}
-
-.encounter-card > p:first-child {
-  color: var(--accent-hover);
-  font-family: "Courier New", monospace;
-  letter-spacing: 1px;
-}
-
-.encounter-card button {
-  margin-right: 8px;
-}
-
-
-/* =========================
-   MOBILE / SMALL WINDOWS
-   ========================= */
-
-@media (max-width: 700px) {
-
-  .app-shell {
-    width: 94%;
-    padding-top: 20px;
-  }
-
-  input:first-of-type,
-  input:nth-of-type(2) {
-    width: 100%;
-  }
-
-  button {
-    margin-top: 4px;
-  }
-}
-/* =========================
-   QUEST FORM V2
-   ========================= */
-
 .quest-form {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
   gap: 10px;
 }
 
@@ -252,14 +212,19 @@ hr {
   margin: 0;
 }
 
+input,
 select {
-  background: #0f1117;
-  border: 1px solid var(--border);
-  color: var(--text);
   padding: 11px 12px;
+
   outline: none;
+
+  color: var(--text);
+  background: var(--panel-dark);
+
+  border: 1px solid var(--border);
 }
 
+input:focus,
 select:focus {
   border-color: var(--accent);
 }
@@ -269,7 +234,99 @@ select:focus {
 }
 
 
-/* Quest information */
+/* =========================
+   BUTTONS
+   ========================= */
+
+button {
+  padding: 9px 14px;
+
+  cursor: pointer;
+
+  color: white;
+  background: var(--accent);
+
+  border: 1px solid var(--accent-light);
+
+  font-weight: bold;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--accent-light);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.secondary-button {
+  color: var(--text);
+  background: transparent;
+
+  border-color: var(--border);
+}
+
+.secondary-button:hover {
+  border-color: var(--accent-light);
+}
+
+.danger-button {
+  color: #e899a5;
+  background: transparent;
+
+  border-color: #713a46;
+}
+
+.danger-button:hover:not(:disabled) {
+  background: #512a33;
+}
+
+.small-button {
+  padding: 5px 9px;
+  font-size: 11px;
+}
+
+
+/* =========================
+   QUEST BOARD
+   ========================= */
+
+.quest-board {
+  margin-top: 34px;
+}
+
+.quest-card {
+  margin: 12px 0;
+  padding: 18px;
+
+  background: var(--panel);
+
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+}
+
+.quest-type {
+  color: var(--accent-light);
+
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+
+  letter-spacing: 1px;
+}
+
+.quest-card p {
+  color: var(--muted);
+}
 
 .quest-meta {
   display: flex;
@@ -279,8 +336,9 @@ select:focus {
   margin-top: 16px;
 
   font-family: "Courier New", monospace;
-  text-transform: uppercase;
   font-size: 12px;
+
+  text-transform: uppercase;
 }
 
 .quest-meta span {
@@ -288,41 +346,35 @@ select:focus {
 }
 
 .quest-meta strong {
-  color: #fbbf24;
+  color: var(--accent-light);
 }
-
-
-/* Quest buttons */
 
 .quest-actions {
   display: flex;
   gap: 8px;
+
   margin-top: 15px;
 }
 
-.danger-button {
-  background: transparent;
-  border-color: #7f3f4a;
-  color: #e899a5;
-}
+.empty-state {
+  padding: 20px 0;
 
-.danger-button:hover {
-  background: #562d35;
-}
+  color: var(--muted);
 
-.small-button {
-  padding: 5px 9px;
-  font-size: 11px;
+  font-style: italic;
 }
 
 
-/* Completed quests */
+/* =========================
+   COMPLETED
+   ========================= */
 
 .completed-section {
+  margin: 25px 0;
+  padding: 18px;
+
   background: var(--panel);
   border: 1px solid var(--border);
-  padding: 18px;
-  margin: 25px 0;
 }
 
 .completed-section h2 {
@@ -331,14 +383,20 @@ select:focus {
 
 .completed-quest {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+
+  grid-template-columns:
+    1fr
+    auto
+    auto;
+
   gap: 15px;
   align-items: center;
 
   padding: 10px 0;
-  border-bottom: 1px solid var(--border);
 
   color: var(--muted);
+
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .completed-quest:last-child {
@@ -346,31 +404,571 @@ select:focus {
 }
 
 
-/* Empty quest log */
+/* ==========================================================
+   CURIOSITY ENGINE
+   ========================================================== */
 
-.empty-state {
+.curiosity-engine {
+  position: relative;
+
+  margin-top: 55px;
+  padding-top: 34px;
+
+  border-top: 1px solid var(--border);
+}
+
+.curiosity-heading {
+  max-width: 650px;
+}
+
+.curiosity-heading h2 {
+  margin: 8px 0;
+  font-size: 28px;
+}
+
+.curiosity-heading > p:last-child {
+  margin-bottom: 20px;
   color: var(--muted);
-  font-style: italic;
+}
+
+
+/* =========================
+   GET SIDETRACKED
+   ========================= */
+
+.sidetracked-button {
+  min-width: 170px;
+
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+
+  letter-spacing: 0.5px;
+}
+
+
+/* =========================
+   WHITE RABBIT
+   ========================= */
+
+.rabbit-loading {
+  margin: 30px 0;
   padding: 20px 0;
 }
 
+.rabbit-loading-title {
+  margin: 0 0 16px;
 
-/* Chaos */
+  color: var(--muted);
 
-.sidetracked-button {
-  margin-bottom: 0;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+
+  letter-spacing: 1.5px;
 }
 
-.encounter-actions {
+.rabbit-trail {
   display: flex;
+  align-items: center;
+
+  min-height: 38px;
+
+  gap: 13px;
+}
+
+.rabbit {
+  display: inline-block;
+
+  opacity: 0;
+
+  font-size: 23px;
+
+  animation:
+    rabbitAppear
+    0.35s
+    ease
+    forwards;
+}
+
+.rabbit-1 {
+  animation-delay: 0s;
+}
+
+.rabbit-2 {
+  animation-delay: 0.25s;
+}
+
+.rabbit-3 {
+  animation-delay: 0.5s;
+}
+
+.rabbit-4 {
+  animation-delay: 0.75s;
+}
+
+.rabbit-5 {
+  animation-delay: 1s;
+}
+
+@keyframes rabbitAppear {
+
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+}
+
+
+/* ==========================================================
+   RABBIT HOLE
+   ========================================================== */
+
+.rabbit-hole-card {
+  position: relative;
+
+  margin-top: 34px;
+  padding: 30px;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      145deg,
+      #151821 0%,
+      #11141b 100%
+    );
+
+  border: 1px solid #57418b;
+  border-left: 3px solid var(--accent);
+
+  box-shadow:
+    0 0 30px rgba(139, 92, 246, 0.08);
+}
+
+
+/* subtle terminal line */
+
+.rabbit-hole-card::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--accent-light),
+      transparent
+    );
+
+  opacity: 0.65;
+}
+
+
+/* =========================
+   RABBIT HEADER
+   ========================= */
+
+.rabbit-hole-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 20px;
+
+  padding-bottom: 14px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.rabbit-number,
+.rabbit-status {
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+
+  letter-spacing: 1.4px;
+}
+
+.rabbit-number {
+  color: var(--muted);
+}
+
+.rabbit-status {
+  color: var(--accent-light);
+}
+
+
+/* =========================
+   WORLD
+   ========================= */
+
+.rabbit-world {
+  margin-top: 25px;
+
+  color: var(--accent-light);
+
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  font-weight: bold;
+
+  letter-spacing: 1.5px;
+}
+
+
+/* =========================
+   TITLE / HOOK
+   ========================= */
+
+.rabbit-title {
+  margin: 12px 0 16px;
+
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1;
+
+  letter-spacing: -1.5px;
+}
+
+.rabbit-hook {
+  max-width: 720px;
+
+  margin: 0;
+
+  color: #c4cad5;
+
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.rabbit-divider {
+  width: 100%;
+  height: 1px;
+
+  margin: 28px 0;
+
+  background: var(--border);
+}
+
+
+/* =========================
+   RABBIT SECTIONS
+   ========================= */
+
+.rabbit-section {
+  margin-top: 30px;
+}
+
+.rabbit-section-title {
+  margin: 0 0 13px;
+
+  color: var(--muted);
+
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  font-weight: bold;
+
+  letter-spacing: 1.7px;
+}
+
+.research-prompt {
+  max-width: 720px;
+
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 20px;
+  line-height: 1.55;
+}
+
+
+/* =========================
+   SOURCES
+   ========================= */
+
+.rabbit-sources {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.rabbit-source {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 12px 10px;
+
+  color: inherit;
+
+  text-decoration: none;
+
+  border-left: 1px solid transparent;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.rabbit-source:hover {
+  background: rgba(139, 92, 246, 0.07);
+
+  border-left-color: var(--accent);
+}
+
+.source-arrow {
+  color: var(--accent-light);
+
+  font-family: "Courier New", monospace;
+  font-size: 19px;
+}
+
+.source-content {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.source-label {
+  color: var(--text);
+
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.source-type {
+  color: var(--dim);
+
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+
+  letter-spacing: 1.2px;
+}
+
+
+/* =========================
+   TAGS
+   ========================= */
+
+.rabbit-tags {
+  display: flex;
+  flex-wrap: wrap;
+
   gap: 8px;
+}
+
+.rabbit-tag {
+  padding: 6px 9px;
+
+  color: #bbb0d8;
+
+  background: #11141b;
+
+  border: 1px solid #3b354a;
+
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+
+  letter-spacing: 0.8px;
+}
+
+
+/* =========================
+   REWARD / ACTIONS
+   ========================= */
+
+.rabbit-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+
+  gap: 20px;
+
+  margin-top: 34px;
+  padding-top: 20px;
+
+  border-top: 1px solid var(--border);
+}
+
+.rabbit-reward {
+  color: var(--muted);
+
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+
+  letter-spacing: 1px;
+}
+
+.rabbit-reward strong {
+  color: var(--accent-light);
+}
+
+.rabbit-actions {
+  display: flex;
+  gap: 9px;
+}
+
+.explore-button {
+  min-width: 110px;
+}
+
+
+/* ==========================================================
+   PERSONAL ARCHIVE
+   ========================================================== */
+
+.rabbit-library {
+  margin-top: 55px;
+  padding-top: 32px;
+
+  border-top: 1px solid var(--border);
+}
+
+.archive-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+
+  gap: 20px;
+}
+
+.archive-heading h2 {
+  margin: 7px 0 0;
+}
+
+.archive-count {
+  color: var(--dim);
+
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+
+  letter-spacing: 1px;
+}
+
+.library-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 12px;
+
   margin-top: 20px;
 }
 
+.library-card {
+  position: relative;
 
-/* Responsive form */
+  padding: 18px;
+
+  background: #11141b;
+
+  border: 1px solid var(--border-soft);
+
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.library-card:hover {
+  background: #151821;
+  border-color: #51456e;
+}
+
+.library-card-top {
+  display: flex;
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.library-number,
+.library-status {
+  color: var(--dim);
+
+  font-family: "Courier New", monospace;
+  font-size: 9px;
+
+  letter-spacing: 1px;
+}
+
+.library-status {
+  color: var(--accent-light);
+}
+
+.library-world {
+  margin: 20px 0 5px;
+
+  color: #9c8cc6;
+
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+
+  letter-spacing: 1px;
+}
+
+.library-card h3 {
+  margin: 6px 0 10px;
+
+  font-size: 18px;
+}
+
+.library-prompt {
+  margin-bottom: 18px;
+
+  color: var(--muted);
+
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.text-button {
+  padding: 0;
+
+  color: var(--accent-light);
+  background: transparent;
+
+  border: 0;
+
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+
+  letter-spacing: 0.8px;
+}
+
+.text-button:hover:not(:disabled) {
+  color: white;
+  background: transparent;
+}
+
+
+/* =========================
+   RESPONSIVE
+   ========================= */
 
 @media (max-width: 700px) {
+
+  .app-shell {
+    width: 94%;
+    padding-top: 22px;
+  }
+
+  h1 {
+    font-size: 36px;
+  }
 
   .quest-form {
     grid-template-columns: 1fr;
@@ -383,68 +981,53 @@ select:focus {
   .completed-quest {
     grid-template-columns: 1fr;
   }
-}
-/* =========================
-   PLAYER PROGRESSION
-   ========================= */
 
-.player-stats {
-  width: 100%;
-  max-width: 520px;
-  margin-top: 18px;
-}
-
-.level-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.level-label {
-  color: #9b6cff;
-  font-family: monospace;
-  font-size: 0.85rem;
-  font-weight: bold;
-  letter-spacing: 2px;
-}
-
-.xp-total {
-  font-weight: bold;
-  color: #f3f4f6;
-}
-
-.xp-bar {
-  width: 100%;
-  height: 12px;
-  background: #151821;
-  border: 1px solid #343a49;
-  overflow: hidden;
-}
-
-.xp-bar-fill {
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    #7147d9,
-    #9b5cff
-  );
-  transition: width 0.35s ease;
-}
-
-.xp-details {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  margin-top: 7px;
-  color: #8993a7;
-  font-family: monospace;
-  font-size: 0.78rem;
-}
-
-@media (max-width: 600px) {
   .xp-details {
     flex-direction: column;
     gap: 4px;
   }
+
+  .rabbit-hole-card {
+    padding: 21px;
+  }
+
+  .rabbit-hole-header {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 6px;
+  }
+
+  .rabbit-title {
+    font-size: 32px;
+  }
+
+  .research-prompt {
+    font-size: 18px;
+  }
+
+  .rabbit-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rabbit-actions {
+    width: 100%;
+  }
+
+  .rabbit-actions button {
+    flex: 1;
+  }
+
+  .library-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .archive-heading {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 5px;
+  }
+
 }

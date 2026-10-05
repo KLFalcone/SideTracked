@@ -22,6 +22,13 @@ interface Player {
 }
 
 
+interface RabbitHoleSource {
+  label: string;
+  url: string;
+  sourceType: string;
+}
+
+
 interface RabbitHole {
   id: number;
   world: string;
@@ -29,6 +36,9 @@ interface RabbitHole {
   hook: string;
   researchPrompt: string;
   xp: number;
+
+  tags: string[];
+  sources: RabbitHoleSource[];
 
   status:
     | 'DISCOVERED'
@@ -47,7 +57,6 @@ interface RabbitHole {
   styleUrl: './app.css'
 })
 export class App {
-
 
   // =========================
   // API ENDPOINTS
@@ -201,6 +210,42 @@ export class App {
   constructor(
     private http: HttpClient
   ) {
+    this.initializeApp();
+  }
+
+
+  private initializeApp(): void {
+
+    this.loadAllPersistentState();
+
+    /*
+     * Development safety net.
+     *
+     * Angular may occasionally finish loading
+     * before the Spring Boot backend is ready.
+     *
+     * Retry once shortly after startup if the
+     * initial persistent state still looks empty.
+     */
+    setTimeout(() => {
+
+      if (
+        this.player.id === 0 &&
+        this.quests.length === 0
+      ) {
+
+        console.log(
+          'Initial state was empty. Retrying backend sync...'
+        );
+
+        this.loadAllPersistentState();
+      }
+
+    }, 1000);
+  }
+
+
+  private loadAllPersistentState(): void {
 
     this.loadPlayer();
     this.loadQuests();
@@ -212,39 +257,75 @@ export class App {
   // PLAYER
   // =========================
 
-  loadPlayer() {
+  loadPlayer(): void {
 
     this.http
       .get<Player>(
         this.playerApiUrl
       )
-      .subscribe(player => {
+      .subscribe({
 
-        this.player = player;
+        next: player => {
+
+          this.player = player;
+
+          console.log(
+            'Player loaded:',
+            player
+          );
+        },
+
+        error: error => {
+
+          console.error(
+            'Failed to load player.',
+            error
+          );
+        }
 
       });
   }
 
 
   // =========================
-  // QUESTS
+  // QUEST LOADING
   // =========================
 
-  loadQuests() {
+  loadQuests(): void {
 
     this.http
       .get<Quest[]>(
         this.questApiUrl
       )
-      .subscribe(data => {
+      .subscribe({
 
-        this.quests = data;
+        next: data => {
+
+          this.quests = data;
+
+          console.log(
+            'Quests loaded:',
+            data
+          );
+        },
+
+        error: error => {
+
+          console.error(
+            'Failed to load quests.',
+            error
+          );
+        }
 
       });
   }
 
 
-  createQuest() {
+  // =========================
+  // CREATE QUEST
+  // =========================
+
+  createQuest(): void {
 
     if (
       !this.newQuestTitle.trim()
@@ -293,28 +374,44 @@ export class App {
         this.questApiUrl,
         quest
       )
-      .subscribe(savedQuest => {
+      .subscribe({
 
-        this.quests.push(
-          savedQuest
-        );
+        next: savedQuest => {
 
-        this.newQuestTitle = '';
-        this.newQuestDescription = '';
+          this.quests.push(
+            savedQuest
+          );
 
-        this.newQuestType =
-          'SIDE QUEST';
+          this.newQuestTitle = '';
+          this.newQuestDescription = '';
 
-        this.newQuestDifficulty =
-          'normal';
+          this.newQuestType =
+            'SIDE QUEST';
+
+          this.newQuestDifficulty =
+            'normal';
+
+        },
+
+        error: error => {
+
+          console.error(
+            'Failed to create quest.',
+            error
+          );
+        }
 
       });
   }
 
 
+  // =========================
+  // COMPLETE QUEST
+  // =========================
+
   completeQuest(
     quest: Quest
-  ) {
+  ): void {
 
     if (
       quest.completed ||
@@ -329,33 +426,53 @@ export class App {
         `${this.questApiUrl}/${quest.id}/complete`,
         {}
       )
-      .subscribe(savedQuest => {
+      .subscribe({
 
-        const index =
-          this.quests.findIndex(
-            q =>
-              q.id ===
-              savedQuest.id
+        next: savedQuest => {
+
+          const index =
+            this.quests.findIndex(
+              q =>
+                q.id ===
+                savedQuest.id
+            );
+
+
+          if (index !== -1) {
+
+            this.quests[index] =
+              savedQuest;
+
+          }
+
+
+          /*
+           * Completing a quest changes XP,
+           * so refresh the player afterward.
+           */
+          this.loadPlayer();
+
+        },
+
+        error: error => {
+
+          console.error(
+            'Failed to complete quest.',
+            error
           );
-
-
-        if (index !== -1) {
-
-          this.quests[index] =
-            savedQuest;
-
         }
-
-
-        this.loadPlayer();
 
       });
   }
 
 
+  // =========================
+  // DELETE QUEST
+  // =========================
+
   deleteQuest(
     quest: Quest
-  ) {
+  ): void {
 
     if (!quest.id) {
       return;
@@ -366,16 +483,32 @@ export class App {
       .delete(
         `${this.questApiUrl}/${quest.id}`
       )
-      .subscribe(() => {
+      .subscribe({
 
-        this.quests =
-          this.quests.filter(
-            q =>
-              q.id !==
-              quest.id
+        next: () => {
+
+          this.quests =
+            this.quests.filter(
+              q =>
+                q.id !==
+                quest.id
+            );
+
+          /*
+           * A deleted completed quest may
+           * affect progression totals.
+           */
+          this.loadPlayer();
+
+        },
+
+        error: error => {
+
+          console.error(
+            'Failed to delete quest.',
+            error
           );
-
-        this.loadPlayer();
+        }
 
       });
   }
@@ -385,7 +518,7 @@ export class App {
   // CURIOSITY ENGINE
   // =========================
 
-  getSidetracked() {
+  getSidetracked(): void {
 
     if (this.followingRabbit) {
       return;
@@ -445,36 +578,54 @@ export class App {
   // RABBIT HOLE LIBRARY
   // =========================
 
-  loadRabbitHoleLibrary() {
+  loadRabbitHoleLibrary(): void {
 
     this.http
       .get<RabbitHole[]>(
         this.rabbitHoleApiUrl
       )
-      .subscribe(rabbitHoles => {
+      .subscribe({
 
-        /*
-         * DISCOVERED means the user
-         * has seen the Rabbit Hole,
-         * but has not chosen to keep it.
-         *
-         * The archive contains Rabbit
-         * Holes they intentionally saved
-         * or explored.
-         */
+        next: rabbitHoles => {
 
-        this.rabbitHoleLibrary =
-          rabbitHoles.filter(
-            rabbitHole =>
-              rabbitHole.status !==
-              'DISCOVERED'
+          /*
+           * DISCOVERED means the user has
+           * seen the Rabbit Hole but hasn't
+           * intentionally saved or explored it.
+           *
+           * Only Rabbit Holes the user chose
+           * to keep belong in the archive.
+           */
+          this.rabbitHoleLibrary =
+            rabbitHoles.filter(
+              rabbitHole =>
+                rabbitHole.status !==
+                'DISCOVERED'
+            );
+
+          console.log(
+            'Rabbit Hole library loaded:',
+            this.rabbitHoleLibrary
           );
+        },
+
+        error: error => {
+
+          console.error(
+            'Failed to load Rabbit Hole library.',
+            error
+          );
+        }
 
       });
   }
 
 
-  saveRabbitHole() {
+  // =========================
+  // SAVE RABBIT HOLE
+  // =========================
+
+  saveRabbitHole(): void {
 
     if (
       !this.currentRabbitHole
@@ -488,18 +639,34 @@ export class App {
         `${this.rabbitHoleApiUrl}/${this.currentRabbitHole.id}/save`,
         {}
       )
-      .subscribe(rabbitHole => {
+      .subscribe({
 
-        this.currentRabbitHole =
-          rabbitHole;
+        next: rabbitHole => {
 
-        this.loadRabbitHoleLibrary();
+          this.currentRabbitHole =
+            rabbitHole;
+
+          this.loadRabbitHoleLibrary();
+
+        },
+
+        error: error => {
+
+          console.error(
+            'Failed to save Rabbit Hole.',
+            error
+          );
+        }
 
       });
   }
 
 
-  exploreRabbitHole() {
+  // =========================
+  // EXPLORE RABBIT HOLE
+  // =========================
+
+  exploreRabbitHole(): void {
 
     if (
       !this.currentRabbitHole
@@ -513,20 +680,36 @@ export class App {
         `${this.rabbitHoleApiUrl}/${this.currentRabbitHole.id}/explore`,
         {}
       )
-      .subscribe(rabbitHole => {
+      .subscribe({
 
-        this.currentRabbitHole =
-          rabbitHole;
+        next: rabbitHole => {
 
-        this.loadRabbitHoleLibrary();
+          this.currentRabbitHole =
+            rabbitHole;
+
+          this.loadRabbitHoleLibrary();
+
+        },
+
+        error: error => {
+
+          console.error(
+            'Failed to start exploring Rabbit Hole.',
+            error
+          );
+        }
 
       });
   }
 
 
+  // =========================
+  // OPEN ARCHIVED RABBIT HOLE
+  // =========================
+
   openRabbitHole(
     rabbitHole: RabbitHole
-  ) {
+  ): void {
 
     this.currentRabbitHole =
       rabbitHole;
@@ -536,10 +719,9 @@ export class App {
      * For now this returns the user
      * to the Curiosity Engine area.
      *
-     * Later Rabbit Holes will get
-     * their own full research view.
+     * Later Rabbit Holes can have
+     * their own dedicated research view.
      */
-
     setTimeout(() => {
 
       const element =
@@ -555,6 +737,10 @@ export class App {
     }, 0);
   }
 
+
+  // =========================
+  // DISPLAY HELPERS
+  // =========================
 
   formatRabbitHoleId(
     id: number
