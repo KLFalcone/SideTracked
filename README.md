@@ -1,7 +1,7 @@
 # SideTracked
 
 > Turn getting sidetracked into progress.
-
+**Status:** Active development
 SideTracked is a gamified curiosity and productivity platform built around a simple idea:
 
 **Getting sidetracked isn't always a bad thing.**
@@ -175,6 +175,7 @@ Research findings, historical discoveries, projects, photos, videos, and explora
 
 - MySQL
 
+<<<<<<< HEAD
 ### Current Architecture
 
 ```text
@@ -192,6 +193,9 @@ Spring Boot REST API
 ---
 
 ## Project Structure
+=======
+## Project Layout
+>>>>>>> d656d9f (Expand SideTracked project documentation)
 
 ```text
 SideTracked/
