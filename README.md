@@ -1,7 +1,9 @@
 # SideTracked
 
-> Turn getting sidetracked into progress.
-**Status:** Active development
+> **Status:** Active development (as of Oct. 5, 2026)
+
+Turn getting sidetracked into progress.
+
 SideTracked is a gamified curiosity and productivity platform built around a simple idea:
 
 **Getting sidetracked isn't always a bad thing.**
@@ -59,10 +61,8 @@ The Curiosity Engine is organized around broad "Worlds" rather than a small coll
 
 Current and planned Worlds include:
 
-- Conspiracies & Mysteries
 - Science & Experiments
 - Atomic Age
-- Declassified
 - History & Lost Knowledge
 - Technology & Engineering
 - Manufacturing & Industry
@@ -110,7 +110,6 @@ Roads Less Traveled is being designed around discovering unusual places and forg
 - Roadside oddities
 - Historic infrastructure
 - Geocaching
-- Cemeteries
 - Architecture
 - Natural oddities
 
@@ -169,13 +168,12 @@ Research findings, historical discoveries, projects, photos, videos, and explora
 - Java
 - Spring Boot
 - Spring Data JPA
-- REST API
+- REST APIs
 
 ### Database
 
 - MySQL
 
-<<<<<<< HEAD
 ### Current Architecture
 
 ```text
@@ -193,9 +191,6 @@ Spring Boot REST API
 ---
 
 ## Project Structure
-=======
-## Project Layout
->>>>>>> d656d9f (Expand SideTracked project documentation)
 
 ```text
 SideTracked/
@@ -217,7 +212,7 @@ SideTracked/
 
 SideTracked is under active development.
 
-Currently working:
+Currently implemented:
 
 - Quest creation
 - Quest completion
@@ -229,7 +224,7 @@ Currently working:
 - Curiosity Engine discovery flow
 - Personal rabbit hole archive
 
-Currently being built:
+In development / planned:
 
 - Dynamic rabbit hole generation
 - Real research sources and external links
