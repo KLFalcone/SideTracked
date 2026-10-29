@@ -67,7 +67,8 @@ class RabbitHoleServiceTest {
                 topicRepository,
                 userRabbitHoleRepository,
                 playerService,
-                currentUserService
+                currentUserService,
+                new WorldCatalog()
         );
     }
 
@@ -81,7 +82,7 @@ class RabbitHoleServiceTest {
 
         for (int i = 0; i < 20; i++) {
 
-            RabbitHoleView view = service.discoverRabbitHole();
+            RabbitHoleView view = service.discoverRabbitHole(null);
 
             assertThat(view.id()).isEqualTo(2L);
         }
@@ -94,7 +95,7 @@ class RabbitHoleServiceTest {
 
         seen.add(card(onlyTopic, RabbitHoleStatus.SAVED));
 
-        RabbitHoleView view = service.discoverRabbitHole();
+        RabbitHoleView view = service.discoverRabbitHole(null);
 
         assertThat(view.id()).isEqualTo(1L);
         assertThat(view.status()).isEqualTo(RabbitHoleStatus.SAVED);
@@ -114,9 +115,68 @@ class RabbitHoleServiceTest {
 
         for (int i = 0; i < 20; i++) {
 
-            assertThat(service.discoverRabbitHole().id())
+            assertThat(service.discoverRabbitHole(null).id())
                     .isEqualTo(2L);
         }
+    }
+
+    @Test
+    void choosingAWorldOnlyDiscoversTopicsFromThatWorld() {
+
+        topic(1L, "THE GAME OF LIFE").setWorld("reality-simulation");
+
+        Topic reactor = topic(2L, "THE REACTOR THAT BUILT ITSELF");
+        reactor.setWorld("atomic-age");
+
+        Topic clock = topic(3L, "A CLOCK BUILT FOR 10,000 YEARS");
+        clock.setWorld("technology-engineering");
+        clock.getRelatedWorlds().add("atomic-age");
+
+        for (int i = 0; i < 20; i++) {
+
+            assertThat(service.discoverRabbitHole("atomic-age").id())
+                    .isIn(2L, 3L);
+        }
+    }
+
+    @Test
+    void anEmptyWorldIsReportedAsNotFound() {
+
+        topic(1L, "THE GAME OF LIFE").setWorld("reality-simulation");
+
+        assertThatThrownBy(() -> service.discoverRabbitHole("medicine"))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("404");
+    }
+
+    @Test
+    void anUnknownWorldIsRejected() {
+
+        assertThatThrownBy(() -> service.discoverRabbitHole("not-a-world"))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("400");
+    }
+
+    @Test
+    void revisitsStayInsideTheChosenWorld() {
+
+        Topic lifeTopic = topic(1L, "THE GAME OF LIFE");
+        lifeTopic.setWorld("reality-simulation");
+
+        Topic reactor = topic(2L, "THE REACTOR THAT BUILT ITSELF");
+        reactor.setWorld("atomic-age");
+
+        seen.add(card(lifeTopic, RabbitHoleStatus.DISCOVERED));
+        seen.add(card(reactor, RabbitHoleStatus.COMPLETED));
+
+        for (int i = 0; i < 20; i++) {
+
+            assertThat(service.discoverRabbitHole("atomic-age").id())
+                    .isEqualTo(2L);
+        }
+
+        verify(userRabbitHoleRepository, never())
+                .save(any(UserRabbitHole.class));
     }
 
     @Test

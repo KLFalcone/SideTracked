@@ -29,11 +29,14 @@ import com.sidetracked.api.repository.TopicRepository;
 public class CuratedTopicCatalog {
 
     private final TopicRepository topicRepository;
+    private final WorldCatalog worldCatalog;
 
     public CuratedTopicCatalog(
-            TopicRepository topicRepository) {
+            TopicRepository topicRepository,
+            WorldCatalog worldCatalog) {
 
         this.topicRepository = topicRepository;
+        this.worldCatalog = worldCatalog;
     }
 
 
@@ -42,6 +45,8 @@ public class CuratedTopicCatalog {
     public void syncCuratedTopics() {
 
         for (Topic curated : buildCuriosityPool()) {
+
+            checkWorldsExist(curated);
 
             Topic topic =
                     topicRepository
@@ -54,6 +59,28 @@ public class CuratedTopicCatalog {
             topic.copyContentFrom(curated);
 
             topicRepository.save(topic);
+        }
+    }
+
+
+    /*
+     * A misspelled World slug would silently hide a topic from
+     * that World, so fail loudly at startup instead.
+     */
+    private void checkWorldsExist(Topic topic) {
+
+        List<String> slugs = new ArrayList<>(topic.getRelatedWorlds());
+        slugs.add(topic.getWorld());
+
+        for (String slug : slugs) {
+
+            if (worldCatalog.findBySlug(slug).isEmpty()) {
+
+                throw new IllegalStateException(
+                        "Curated topic \"" + topic.getTitle()
+                                + "\" uses unknown World: " + slug
+                );
+            }
         }
     }
 
@@ -75,7 +102,7 @@ public class CuratedTopicCatalog {
 
         pool.add(
                 curated(
-                        "REALITY & SIMULATION",
+                        "reality-simulation",
                         "THE GAME OF LIFE",
 
                         "In 1970, mathematician John Conway created "
@@ -90,10 +117,14 @@ public class CuratedTopicCatalog {
 
                         25,
 
-                        List.of(
-                                "TECHNOLOGY & ENGINEERING",
-                                "SCIENCE & EXPERIMENTS",
-                                "HISTORY & LOST KNOWLEDGE"
+                        worlds(
+                                "technology-engineering",
+                                "science-experiments"
+                        ),
+
+                        tags(
+                                "MATHEMATICS",
+                                "COMPUTING"
                         ),
 
                         List.of(
@@ -123,7 +154,7 @@ public class CuratedTopicCatalog {
 
         pool.add(
                 curated(
-                        "SIGNALS & COMMUNICATIONS",
+                        "signals-communications",
                         "THE WOW! SIGNAL",
 
                         "In 1977, a radio telescope detected an "
@@ -139,9 +170,11 @@ public class CuratedTopicCatalog {
 
                         30,
 
-                        List.of(
-                                "SPACE & COSMOS",
-                                "SIGNALS & COMMUNICATIONS",
+                        worlds(
+                                "space-unknown"
+                        ),
+
+                        tags(
                                 "UNSOLVED & UNEXPLAINED"
                         ),
 
@@ -167,7 +200,7 @@ public class CuratedTopicCatalog {
 
         pool.add(
                 curated(
-                        "HISTORY & LOST KNOWLEDGE",
+                        "history-lost-knowledge",
                         "THE ANTIKYTHERA MECHANISM",
 
                         "Divers exploring an ancient shipwreck found "
@@ -182,10 +215,13 @@ public class CuratedTopicCatalog {
 
                         30,
 
-                        List.of(
-                                "HISTORY & LOST KNOWLEDGE",
-                                "TECHNOLOGY & ENGINEERING",
-                                "SPACE & COSMOS"
+                        worlds(
+                                "technology-engineering",
+                                "space-unknown"
+                        ),
+
+                        tags(
+                                "ANCIENT ENGINEERING"
                         ),
 
                         List.of(
@@ -210,7 +246,7 @@ public class CuratedTopicCatalog {
 
         pool.add(
                 curated(
-                        "ATOMIC AGE",
+                        "atomic-age",
                         "THE REACTOR THAT BUILT ITSELF",
 
                         "Nearly two billion years before humans built "
@@ -225,10 +261,14 @@ public class CuratedTopicCatalog {
 
                         35,
 
-                        List.of(
-                                "ATOMIC AGE",
-                                "SCIENCE & EXPERIMENTS",
-                                "EARTH & DEEP TIME"
+                        worlds(
+                                "energy-power",
+                                "earth-materials",
+                                "science-experiments"
+                        ),
+
+                        tags(
+                                "DEEP TIME"
                         ),
 
                         List.of(
@@ -253,7 +293,7 @@ public class CuratedTopicCatalog {
 
         pool.add(
                 curated(
-                        "DEEP TIME",
+                        "technology-engineering",
                         "A CLOCK BUILT FOR 10,000 YEARS",
 
                         "Inside a mountain, engineers are building a "
@@ -267,10 +307,13 @@ public class CuratedTopicCatalog {
 
                         25,
 
-                        List.of(
-                                "TECHNOLOGY & ENGINEERING",
-                                "EARTH & DEEP TIME",
-                                "HUMAN SYSTEMS"
+                        worlds(
+                                "architecture-built-world",
+                                "earth-materials"
+                        ),
+
+                        tags(
+                                "DEEP TIME"
                         ),
 
                         List.of(
@@ -290,7 +333,7 @@ public class CuratedTopicCatalog {
 
         pool.add(
                 curated(
-                        "SIGNALS & COMMUNICATIONS",
+                        "signals-communications",
                         "THE VOICES IN THE STATIC",
 
                         "For decades, shortwave radios have picked up "
@@ -305,8 +348,11 @@ public class CuratedTopicCatalog {
 
                         25,
 
-                        List.of(
-                                "SIGNALS & COMMUNICATIONS",
+                        worlds(
+                                "history-lost-knowledge"
+                        ),
+
+                        tags(
                                 "ESPIONAGE & SECRETS",
                                 "UNSOLVED & UNEXPLAINED"
                         ),
@@ -333,7 +379,7 @@ public class CuratedTopicCatalog {
 
         pool.add(
                 curated(
-                        "HISTORY & LOST KNOWLEDGE",
+                        "history-lost-knowledge",
                         "THE VOYNICH MANUSCRIPT",
 
                         "A centuries-old illustrated manuscript is "
@@ -348,8 +394,11 @@ public class CuratedTopicCatalog {
 
                         30,
 
-                        List.of(
-                                "HISTORY & LOST KNOWLEDGE",
+                        worlds(
+                                "books-archives"
+                        ),
+
+                        tags(
                                 "LANGUAGE & CODES",
                                 "UNSOLVED & UNEXPLAINED"
                         ),
@@ -371,7 +420,7 @@ public class CuratedTopicCatalog {
 
         pool.add(
                 curated(
-                        "HIDDEN INFRASTRUCTURE",
+                        "transportation-infrastructure",
                         "THE INTERNET UNDER THE OCEAN",
 
                         "Most international internet traffic does not "
@@ -385,10 +434,13 @@ public class CuratedTopicCatalog {
 
                         20,
 
-                        List.of(
-                                "TECHNOLOGY & ENGINEERING",
-                                "HIDDEN INFRASTRUCTURE",
-                                "SIGNALS & COMMUNICATIONS"
+                        worlds(
+                                "signals-communications",
+                                "technology-engineering"
+                        ),
+
+                        tags(
+                                "HIDDEN INFRASTRUCTURE"
                         ),
 
                         List.of(
@@ -408,7 +460,7 @@ public class CuratedTopicCatalog {
 
         pool.add(
                 curated(
-                        "SCIENCE & EXPERIMENTS",
+                        "science-experiments",
                         "THE EXPERIMENT THAT TAKES YEARS TO DRIP",
 
                         "A funnel filled with pitch has been running "
@@ -422,10 +474,12 @@ public class CuratedTopicCatalog {
 
                         20,
 
-                        List.of(
-                                "SCIENCE & EXPERIMENTS",
-                                "EARTH & DEEP TIME",
-                                "MATERIALS & MATTER"
+                        worlds(
+                                "earth-materials"
+                        ),
+
+                        tags(
+                                "DEEP TIME"
                         ),
 
                         List.of(
@@ -445,7 +499,7 @@ public class CuratedTopicCatalog {
 
         pool.add(
                 curated(
-                        "DIGITAL CULTURE",
+                        "wildcard",
                         "THE DEAD INTERNET THEORY",
 
                         "A modern internet conspiracy theory proposes "
@@ -461,10 +515,13 @@ public class CuratedTopicCatalog {
 
                         25,
 
-                        List.of(
-                                "DIGITAL CULTURE",
-                                "TECHNOLOGY & ENGINEERING",
-                                "HUMAN SYSTEMS"
+                        worlds(
+                                "technology-engineering",
+                                "signals-communications"
+                        ),
+
+                        tags(
+                                "DIGITAL CULTURE"
                         ),
 
                         List.of(
@@ -489,7 +546,7 @@ public class CuratedTopicCatalog {
 
         pool.add(
                 curated(
-                        "LIVING SYSTEMS",
+                        "earth-materials",
                         "THE FOREST THAT IS ONE TREE",
 
                         "In Utah, tens of thousands of aspen trunks "
@@ -505,9 +562,13 @@ public class CuratedTopicCatalog {
 
                         25,
 
-                        List.of(
+                        worlds(
+                                "roads-less-traveled",
+                                "exploration-expeditions"
+                        ),
+
+                        tags(
                                 "LIVING SYSTEMS",
-                                "EARTH & DEEP TIME",
                                 "STRANGE NATURE"
                         ),
 
@@ -533,7 +594,7 @@ public class CuratedTopicCatalog {
 
         pool.add(
                 curated(
-                        "REALITY & SIMULATION",
+                        "science-experiments",
                         "YOUR GPS NEEDS EINSTEIN",
 
                         "Satellites experience time differently from "
@@ -548,10 +609,13 @@ public class CuratedTopicCatalog {
 
                         30,
 
-                        List.of(
-                                "SPACE & COSMOS",
-                                "TECHNOLOGY & ENGINEERING",
-                                "PHYSICS & REALITY"
+                        worlds(
+                                "space-unknown",
+                                "technology-engineering"
+                        ),
+
+                        tags(
+                                "PHYSICS"
                         ),
 
                         List.of(
@@ -581,11 +645,12 @@ public class CuratedTopicCatalog {
      */
 
     private Topic curated(
-            String world,
+            String primaryWorld,
             String title,
             String hook,
             String researchPrompt,
             int xp,
+            List<String> relatedWorlds,
             List<String> tags,
             List<TopicSource> sources) {
 
@@ -594,11 +659,15 @@ public class CuratedTopicCatalog {
         topic.setSourceProvider(Topic.CURATED);
         topic.setExternalId(Topic.slugify(title));
 
-        topic.setWorld(world);
+        topic.setWorld(primaryWorld);
         topic.setTitle(title);
         topic.setHook(hook);
         topic.setResearchPrompt(researchPrompt);
         topic.setXp(xp);
+
+        topic.setRelatedWorlds(
+                new ArrayList<>(relatedWorlds)
+        );
 
         topic.setTags(
                 new ArrayList<>(tags)
@@ -609,6 +678,16 @@ public class CuratedTopicCatalog {
         );
 
         return topic;
+    }
+
+
+    private List<String> worlds(String... slugs) {
+        return List.of(slugs);
+    }
+
+
+    private List<String> tags(String... tags) {
+        return List.of(tags);
     }
 
 

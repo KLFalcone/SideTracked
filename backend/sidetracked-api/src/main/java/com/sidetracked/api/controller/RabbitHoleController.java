@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sidetracked.api.model.RabbitHoleView;
@@ -28,9 +29,16 @@ public class RabbitHoleController {
         this.rabbitHoleService = rabbitHoleService;
     }
 
+    /*
+     * POST /api/rabbit-holes/discover              -> any World
+     * POST /api/rabbit-holes/discover?world=slug   -> that World only
+     */
     @PostMapping("/discover")
-    public RabbitHoleView discoverRabbitHole() {
-        return rabbitHoleService.discoverRabbitHole();
+    public RabbitHoleView discoverRabbitHole(
+            @RequestParam(name = "world", required = false)
+            String worldSlug) {
+
+        return rabbitHoleService.discoverRabbitHole(worldSlug);
     }
 
     @GetMapping

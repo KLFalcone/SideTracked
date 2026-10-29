@@ -36,24 +36,30 @@ public class RabbitHoleService {
     private final UserRabbitHoleRepository userRabbitHoleRepository;
     private final PlayerService playerService;
     private final CurrentUserService currentUserService;
+    private final WorldCatalog worldCatalog;
     private final Random random = new Random();
 
     public RabbitHoleService(
             TopicRepository topicRepository,
             UserRabbitHoleRepository userRabbitHoleRepository,
             PlayerService playerService,
-            CurrentUserService currentUserService) {
+            CurrentUserService currentUserService,
+            WorldCatalog worldCatalog) {
 
         this.topicRepository = topicRepository;
         this.userRabbitHoleRepository = userRabbitHoleRepository;
         this.playerService = playerService;
         this.currentUserService = currentUserService;
+        this.worldCatalog = worldCatalog;
     }
 
     /*
      * ============================================================
      * DISCOVERY
      * ============================================================
+     *
+     * worldSlug is optional: null means "Surprise Me" (any World),
+     * otherwise only topics belonging to that World are considered.
      *
      * 1. A topic the user has never seen, if any remain.
      * 2. Otherwise revisit one they skipped or saved,
@@ -64,10 +70,38 @@ public class RabbitHoleService {
      */
 
     @Transactional
-    public RabbitHoleView discoverRabbitHole() {
+    public RabbitHoleView discoverRabbitHole(String worldSlug) {
+
+        if (worldSlug != null
+                && worldCatalog.findBySlug(worldSlug).isEmpty()) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Unknown World: " + worldSlug
+            );
+        }
 
         Long userId =
                 currentUserService.getCurrentUserId();
+
+        List<Topic> candidates =
+                topicRepository.findAll()
+                        .stream()
+                        .filter(topic ->
+                                worldSlug == null
+                                        || topic.belongsTo(worldSlug)
+                        )
+                        .toList();
+
+        if (candidates.isEmpty()) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    worldSlug == null
+                            ? "No Rabbit Holes are available yet."
+                            : "No Rabbit Holes in this World yet."
+            );
+        }
 
         Map<Long, UserRabbitHole> seen =
                 userRabbitHoleRepository
@@ -79,8 +113,7 @@ public class RabbitHoleService {
                         ));
 
         List<Topic> unseen =
-                topicRepository.findAll()
-                        .stream()
+                candidates.stream()
                         .filter(topic ->
                                 !seen.containsKey(topic.getId())
                         )
@@ -95,19 +128,23 @@ public class RabbitHoleService {
                             new UserRabbitHole(userId, topic)
                     );
 
-            return RabbitHoleView.from(rabbitHole);
+            return toView(rabbitHole);
         }
 
-        if (seen.isEmpty()) {
+        List<UserRabbitHole> seenInScope =
+                candidates.stream()
+                        .map(topic -> seen.get(topic.getId()))
+                        .toList();
 
-            throw new ResponseStatusException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "No Rabbit Holes are available yet."
-            );
-        }
+        return toView(pickRevisit(seenInScope));
+    }
+
+
+    private RabbitHoleView toView(UserRabbitHole rabbitHole) {
 
         return RabbitHoleView.from(
-                pickRevisit(List.copyOf(seen.values()))
+                rabbitHole,
+                worldCatalog::nameOf
         );
     }
 
@@ -156,7 +193,7 @@ public class RabbitHoleService {
                         currentUserService.getCurrentUserId()
                 )
                 .stream()
-                .map(RabbitHoleView::from)
+                .map(this::toView)
                 .toList();
     }
 
@@ -184,7 +221,7 @@ public class RabbitHoleService {
             );
         }
 
-        return RabbitHoleView.from(rabbitHole);
+        return toView(rabbitHole);
     }
 
 
@@ -201,7 +238,7 @@ public class RabbitHoleService {
             );
         }
 
-        return RabbitHoleView.from(rabbitHole);
+        return toView(rabbitHole);
     }
 
 
@@ -215,7 +252,7 @@ public class RabbitHoleService {
         if (rabbitHole.getStatus()
                 == RabbitHoleStatus.COMPLETED) {
 
-            return RabbitHoleView.from(rabbitHole);
+            return toView(rabbitHole);
         }
 
         rabbitHole.setStatus(
@@ -236,7 +273,7 @@ public class RabbitHoleService {
                 rabbitHole
         );
 
-        return RabbitHoleView.from(rabbitHole);
+        return toView(rabbitHole);
     }
 
 
