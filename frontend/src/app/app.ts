@@ -129,6 +129,21 @@ export class App {
   }
 
 
+  /*
+   * Counted from the Rabbit Holes themselves rather than the
+   * player's stored counter, which still includes one encounter
+   * from an earlier version of the app.
+   */
+  get completedRabbitHoleCount(): number {
+
+    return this.rabbitHoleLibrary().filter(
+      rabbitHole =>
+        rabbitHole.status ===
+        'COMPLETED'
+    ).length;
+  }
+
+
   get level(): number {
 
     if (this.xp < 100) return 1;
