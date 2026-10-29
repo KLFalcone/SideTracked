@@ -288,7 +288,7 @@
             <option
               [value]="world.slug"
               [disabled]="world.topicCount === 0 && !world.liveDiscovery">
-              {{ world.name }}{{ world.liveDiscovery ? ' // live' : (world.topicCount === 0 ? ' // coming soon' : ' (' + world.topicCount + ')') }}
+              {{ world.name }}{{ world.topicCount === 0 && !world.liveDiscovery ? ' // coming soon' : '' }}
             </option>
           }
 
