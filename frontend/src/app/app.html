@@ -1,5 +1,23 @@
 <main class="app-shell">
 
+  @if (connectionError()) {
+
+    <div class="connection-banner" role="alert">
+
+      <span>
+        Can't reach the SideTracked server. Is Spring Boot running?
+      </span>
+
+      <button
+        class="secondary-button small-button"
+        (click)="loadAllPersistentState()">
+        RETRY
+      </button>
+
+    </div>
+
+  }
+
   <!-- =========================
        HEADER / PLAYER
        ========================= -->
@@ -60,12 +78,14 @@
   <input
     type="text"
     placeholder="Quest"
+    maxlength="255"
     [(ngModel)]="newQuestTitle"
   >
 
   <input
     type="text"
     placeholder="Notes (optional)"
+    maxlength="255"
     [(ngModel)]="newQuestDescription"
   >
 
@@ -89,6 +109,12 @@
   <button (click)="createQuest()">
     + ADD QUEST
   </button>
+
+  @if (questError(); as message) {
+    <p class="form-error" role="alert">
+      {{ message }}
+    </p>
+  }
 
 </div>
 
@@ -215,10 +241,74 @@
     </div>
 
 
+    <!-- =========================
+         DISCOVERY MODE
+         ========================= -->
+
+    <div class="discovery-modes">
+
+      <button
+        class="mode-button"
+        [class.active]="discoveryMode === 'surprise'"
+        [attr.aria-pressed]="discoveryMode === 'surprise'"
+        (click)="discoveryMode = 'surprise'">
+        SURPRISE ME
+      </button>
+
+      <button
+        class="mode-button"
+        [class.active]="discoveryMode === 'world'"
+        [attr.aria-pressed]="discoveryMode === 'world'"
+        (click)="discoveryMode = 'world'">
+        CHOOSE A WORLD
+      </button>
+
+    </div>
+
+
+    @if (discoveryMode === 'surprise') {
+
+      <p class="mode-hint">
+        Anything goes. Follow the rabbit into any World.
+      </p>
+
+    } @else {
+
+      <div class="world-picker">
+
+        <select
+          aria-label="World"
+          [(ngModel)]="selectedWorld">
+
+          <option value="" disabled>
+            Pick a World...
+          </option>
+
+          @for (world of worlds(); track world.slug) {
+            <option
+              [value]="world.slug"
+              [disabled]="world.topicCount === 0">
+              {{ world.name }}{{ world.topicCount === 0 ? ' // coming soon' : ' (' + world.topicCount + ')' }}
+            </option>
+          }
+
+        </select>
+
+        @if (selectedWorldInfo; as world) {
+          <p class="mode-hint">
+            {{ world.tagline }}
+          </p>
+        }
+
+      </div>
+
+    }
+
+
     <button
       class="sidetracked-button"
       (click)="getSidetracked()"
-      [disabled]="followingRabbit()">
+      [disabled]="followingRabbit() || (discoveryMode === 'world' && !selectedWorld)">
 
       @if (followingRabbit()) {
         FOLLOWING...
@@ -227,6 +317,13 @@
       }
 
     </button>
+
+
+    @if (discoveryMessage(); as message) {
+      <p class="discovery-message" role="status">
+        {{ message }}
+      </p>
+    }
 
 
     <!-- =========================
@@ -356,10 +453,10 @@
 
 
         <!-- =========================
-             RELATED WORLDS / TAGS
+             RELATED WORLDS / THEMES
              ========================= -->
 
-        @if (currentRabbitHole.tags.length > 0) {
+        @if (currentRabbitHole.relatedWorlds.length > 0) {
 
           <div class="rabbit-section">
 
@@ -370,11 +467,38 @@
             <div class="rabbit-tags">
 
               @for (
+                world of currentRabbitHole.relatedWorlds;
+                track world
+              ) {
+
+                <span class="rabbit-tag">
+                  {{ world }}
+                </span>
+
+              }
+
+            </div>
+
+          </div>
+
+        }
+
+        @if (currentRabbitHole.tags.length > 0) {
+
+          <div class="rabbit-section">
+
+            <p class="rabbit-section-title">
+              THEMES
+            </p>
+
+            <div class="rabbit-tags">
+
+              @for (
                 tag of currentRabbitHole.tags;
                 track tag
               ) {
 
-                <span class="rabbit-tag">
+                <span class="rabbit-tag theme-tag">
                   {{ tag }}
                 </span>
 
@@ -496,7 +620,7 @@
         </div>
 
         <span class="archive-count">
-          {{ rabbitHoleLibrary().length }} DISCOVERED
+          {{ rabbitHoleLibrary().length }} IN ARCHIVE
         </span>
 
       </div>
