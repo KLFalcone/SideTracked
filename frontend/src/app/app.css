@@ -313,8 +313,16 @@ select:focus {
   background: var(--text);
 }
 
-.timeline-status {
+.timeline-last-done {
   margin: 8px 0 0;
+
+  color: var(--text);
+
+  font-size: 13px;
+}
+
+.timeline-status {
+  margin: 4px 0 0;
 
   color: var(--muted);
 
