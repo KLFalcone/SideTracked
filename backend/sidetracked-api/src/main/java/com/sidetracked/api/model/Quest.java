@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Entity
 public class Quest {
@@ -24,9 +26,22 @@ public class Quest {
     @Column(nullable = false)
     private Long userId;
 
+    /*
+     * Limits match the database columns, so an overly long
+     * entry is rejected with a clear error instead of failing
+     * when it is saved.
+     */
+    @NotBlank(message = "A quest needs a title.")
+    @Size(max = 255, message = "Quest titles can be at most 255 characters.")
     private String title;
+
+    @Size(max = 255, message = "Quest notes can be at most 255 characters.")
     private String description;
+
+    @Size(max = 255)
     private String type;
+
+    @Size(max = 255)
     private String priority;
     private boolean completed;
     private int xp;
