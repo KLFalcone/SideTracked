@@ -55,6 +55,15 @@ public class RabbitHole {
     private LocalDateTime discoveredAt;
 
     /*
+     * "One thing I learned..."
+     *
+     * A personal journal note written when the
+     * rabbit hole is completed. Any entry is accepted.
+     */
+    @Column(length = 2000)
+    private String reflection;
+
+    /*
      * Rabbit holes can cross multiple subjects.
      *
      * Example:
@@ -168,6 +177,14 @@ public class RabbitHole {
 
     public void setDiscoveredAt(LocalDateTime discoveredAt) {
         this.discoveredAt = discoveredAt;
+    }
+
+    public String getReflection() {
+        return reflection;
+    }
+
+    public void setReflection(String reflection) {
+        this.reflection = reflection;
     }
 
     public List<String> getTags() {

@@ -70,19 +70,21 @@
   >
 
   <select [(ngModel)]="newQuestType">
-    <option>SIDE QUEST</option>
-    <option>MAIN QUEST</option>
-    <option>BOSS FIGHT</option>
-    <option>EXPERIMENT</option>
-    <option>COLLECTION QUEST</option>
+    @for (type of questTypes; track type.name) {
+      <option [value]="type.name">
+        {{ type.name }} // +{{ type.xp }} XP
+      </option>
+    }
   </select>
 
-  <select [(ngModel)]="newQuestDifficulty">
-    <option value="easy">Easy // +10 XP</option>
-    <option value="normal">Normal // +20 XP</option>
-    <option value="hard">Hard // +35 XP</option>
-    <option value="legendary">Legendary // +50 XP</option>
-  </select>
+  @if (newQuestTypeInfo; as typeInfo) {
+    <p class="quest-type-hint">
+      {{ typeInfo.hint }}
+      <span class="quest-type-example">
+        e.g. {{ typeInfo.example }}
+      </span>
+    </p>
+  }
 
   <button (click)="createQuest()">
     + ADD QUEST
@@ -100,13 +102,13 @@
 
     <h2>Active Quests</h2>
 
-    @if (quests.length === 0) {
+    @if (quests().length === 0) {
       <p class="empty-state">
         Quest log suspiciously empty.
       </p>
     }
 
-    @for (quest of quests; track quest.id) {
+    @for (quest of quests(); track quest.id) {
 
       @if (!quest.completed) {
 
@@ -122,7 +124,9 @@
 
           <div class="quest-meta">
 
-            <span>{{ quest.priority }}</span>
+            @if (quest.priority) {
+              <span>{{ quest.priority }}</span>
+            }
 
             <strong>
               +{{ quest.xp }} XP
@@ -163,7 +167,7 @@
 
     <h2>Completed</h2>
 
-    @for (quest of quests; track quest.id) {
+    @for (quest of quests(); track quest.id) {
 
       @if (quest.completed) {
 
@@ -214,9 +218,9 @@
     <button
       class="sidetracked-button"
       (click)="getSidetracked()"
-      [disabled]="followingRabbit">
+      [disabled]="followingRabbit()">
 
-      @if (followingRabbit) {
+      @if (followingRabbit()) {
         FOLLOWING...
       } @else {
         GET SIDETRACKED
@@ -229,7 +233,7 @@
          FOLLOW THE WHITE RABBIT
          ========================= -->
 
-    @if (followingRabbit) {
+    @if (followingRabbit()) {
 
       <div class="rabbit-loading">
 
@@ -254,7 +258,7 @@
          CURRENT RABBIT HOLE
          ========================= -->
 
-    @if (currentRabbitHole) {
+    @if (currentRabbitHole(); as currentRabbitHole) {
 
       <article class="rabbit-hole-card">
 
@@ -383,6 +387,53 @@
         }
 
 
+        <!-- =========================
+             JOURNAL / COMPLETE
+             ========================= -->
+
+        @if (currentRabbitHole.status === 'EXPLORING') {
+
+          <div class="rabbit-section">
+
+            <p class="rabbit-section-title">
+              ONE THING I LEARNED...
+            </p>
+
+            <textarea
+              class="rabbit-reflection-input"
+              rows="3"
+              maxlength="2000"
+              placeholder="Anything counts. This is your journal."
+              [(ngModel)]="rabbitHoleReflection">
+            </textarea>
+
+            <button
+              class="explore-button"
+              (click)="completeRabbitHole()">
+              MARK COMPLETE // +{{ currentRabbitHole.xp }} XP
+            </button>
+
+          </div>
+
+        }
+
+        @if (currentRabbitHole.status === 'COMPLETED') {
+
+          <div class="rabbit-section">
+
+            <p class="rabbit-section-title">
+              ONE THING I LEARNED...
+            </p>
+
+            <p class="rabbit-reflection">
+              {{ currentRabbitHole.reflection || 'No note written.' }}
+            </p>
+
+          </div>
+
+        }
+
+
         <div class="rabbit-footer">
 
           <div class="rabbit-reward">
@@ -393,21 +444,25 @@
           </div>
 
 
-          <div class="rabbit-actions">
+          @if (currentRabbitHole.status !== 'COMPLETED') {
 
-            <button
-              class="secondary-button"
-              (click)="saveRabbitHole()">
-              SAVE FOR LATER
-            </button>
+            <div class="rabbit-actions">
 
-            <button
-              class="explore-button"
-              (click)="exploreRabbitHole()">
-              EXPLORE
-            </button>
+              <button
+                class="secondary-button"
+                (click)="saveRabbitHole()">
+                SAVE FOR LATER
+              </button>
 
-          </div>
+              <button
+                class="explore-button"
+                (click)="exploreRabbitHole()">
+                EXPLORE
+              </button>
+
+            </div>
+
+          }
 
         </div>
 
@@ -422,7 +477,7 @@
        RABBIT HOLE LIBRARY
        ========================= -->
 
-  @if (rabbitHoleLibrary.length > 0) {
+  @if (rabbitHoleLibrary().length > 0) {
 
     <section class="rabbit-library">
 
@@ -441,7 +496,7 @@
         </div>
 
         <span class="archive-count">
-          {{ rabbitHoleLibrary.length }} DISCOVERED
+          {{ rabbitHoleLibrary().length }} DISCOVERED
         </span>
 
       </div>
@@ -450,7 +505,7 @@
       <div class="library-grid">
 
         @for (
-          rabbitHole of rabbitHoleLibrary;
+          rabbitHole of rabbitHoleLibrary();
           track rabbitHole.id
         ) {
 
@@ -483,6 +538,15 @@
             <p class="library-prompt">
               {{ rabbitHole.researchPrompt }}
             </p>
+
+
+            @if (rabbitHole.reflection) {
+
+              <p class="library-reflection">
+                “{{ rabbitHole.reflection }}”
+              </p>
+
+            }
 
 
             <button

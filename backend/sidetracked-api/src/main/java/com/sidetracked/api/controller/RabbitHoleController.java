@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -53,9 +54,23 @@ public class RabbitHoleController {
 
     @PutMapping("/{id}/complete")
     public RabbitHole completeRabbitHole(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @RequestBody(required = false)
+            CompleteRabbitHoleRequest request) {
 
-        return rabbitHoleService.completeRabbitHole(id);
+        String reflection =
+                request == null
+                        ? null
+                        : request.reflection();
+
+        return rabbitHoleService.completeRabbitHole(
+                id,
+                reflection
+        );
+    }
+
+    public record CompleteRabbitHoleRequest(
+            String reflection) {
     }
 
     @DeleteMapping("/{id}")

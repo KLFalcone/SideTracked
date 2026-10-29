@@ -7,6 +7,7 @@ import java.util.Random;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.sidetracked.api.model.RabbitHole;
 import com.sidetracked.api.model.RabbitHole.RabbitHoleSource;
@@ -17,12 +18,15 @@ import com.sidetracked.api.repository.RabbitHoleRepository;
 public class RabbitHoleService {
 
     private final RabbitHoleRepository rabbitHoleRepository;
+    private final PlayerService playerService;
     private final Random random = new Random();
 
     public RabbitHoleService(
-            RabbitHoleRepository rabbitHoleRepository) {
+            RabbitHoleRepository rabbitHoleRepository,
+            PlayerService playerService) {
 
         this.rabbitHoleRepository = rabbitHoleRepository;
+        this.playerService = playerService;
     }
 
     /*
@@ -103,9 +107,21 @@ public class RabbitHoleService {
      * ============================================================
      */
 
+    /*
+     * Completed rabbit holes keep their status.
+     * Otherwise a rabbit hole could be completed again
+     * and award its XP more than once.
+     */
+
     public RabbitHole saveForLater(Long id) {
 
         RabbitHole rabbitHole = getRabbitHole(id);
+
+        if (rabbitHole.getStatus()
+                == RabbitHoleStatus.COMPLETED) {
+
+            return rabbitHole;
+        }
 
         rabbitHole.setStatus(
                 RabbitHoleStatus.SAVED
@@ -119,6 +135,12 @@ public class RabbitHoleService {
 
         RabbitHole rabbitHole = getRabbitHole(id);
 
+        if (rabbitHole.getStatus()
+                == RabbitHoleStatus.COMPLETED) {
+
+            return rabbitHole;
+        }
+
         rabbitHole.setStatus(
                 RabbitHoleStatus.EXPLORING
         );
@@ -127,7 +149,10 @@ public class RabbitHoleService {
     }
 
 
-    public RabbitHole completeRabbitHole(Long id) {
+    @Transactional
+    public RabbitHole completeRabbitHole(
+            Long id,
+            String reflection) {
 
         RabbitHole rabbitHole = getRabbitHole(id);
 
@@ -141,7 +166,20 @@ public class RabbitHoleService {
                 RabbitHoleStatus.COMPLETED
         );
 
-        return rabbitHoleRepository.save(rabbitHole);
+        /*
+         * The reflection is a personal journal entry,
+         * so whatever the player writes is accepted.
+         */
+        rabbitHole.setReflection(reflection);
+
+        RabbitHole savedRabbitHole =
+                rabbitHoleRepository.save(rabbitHole);
+
+        playerService.awardEncounterXp(
+                savedRabbitHole.getXp()
+        );
+
+        return savedRabbitHole;
     }
 
 

@@ -233,6 +233,24 @@ select:focus {
   grid-column: 1 / -1;
 }
 
+.quest-type-hint {
+  align-self: center;
+
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 13px;
+}
+
+.quest-type-example {
+  display: block;
+
+  color: var(--accent-light);
+
+  font-style: italic;
+}
+
 
 /* =========================
    BUTTONS
@@ -346,6 +364,8 @@ button:disabled {
 }
 
 .quest-meta strong {
+  margin-left: auto;
+
   color: var(--accent-light);
 }
 
@@ -823,6 +843,61 @@ button:disabled {
 
 .explore-button {
   min-width: 110px;
+}
+
+
+/* =========================
+   JOURNAL / REFLECTION
+   ========================= */
+
+.rabbit-reflection-input {
+  display: block;
+
+  width: 100%;
+  box-sizing: border-box;
+
+  margin: 0 0 12px;
+  padding: 11px 12px;
+
+  resize: vertical;
+  outline: none;
+
+  color: var(--text);
+  background: var(--panel-dark);
+
+  border: 1px solid var(--border);
+
+  font: inherit;
+  line-height: 1.55;
+}
+
+.rabbit-reflection-input:focus {
+  border-color: var(--accent);
+}
+
+.rabbit-reflection {
+  max-width: 720px;
+
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 16px;
+  line-height: 1.55;
+
+  white-space: pre-wrap;
+}
+
+.library-reflection {
+  margin: -8px 0 18px;
+
+  color: var(--accent-light);
+
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.55;
+
+  white-space: pre-wrap;
 }
 
 

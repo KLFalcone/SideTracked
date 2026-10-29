@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
@@ -47,6 +47,8 @@ interface RabbitHole {
     | 'COMPLETED';
 
   discoveredAt: string;
+
+  reflection?: string | null;
 }
 
 
@@ -76,21 +78,21 @@ export class App {
   // PLAYER
   // =========================
 
-  player: Player = {
+  player = signal<Player>({
     id: 0,
     xp: 0,
     questsCompleted: 0,
     encountersCompleted: 0
-  };
+  });
 
 
   get xp(): number {
-    return this.player.xp;
+    return this.player().xp;
   }
 
 
   get completedQuestCount(): number {
-    return this.player.questsCompleted;
+    return this.player().questsCompleted;
   }
 
 
@@ -178,29 +180,83 @@ export class App {
   // QUESTS
   // =========================
 
-  quests: Quest[] = [];
+  quests = signal<Quest[]>([]);
 
   newQuestTitle = '';
   newQuestDescription = '';
 
   newQuestType =
-    'SIDE QUEST';
+    'SELF-CARE';
 
-  newQuestDifficulty =
-    'normal';
+
+  /*
+   * Mirrors the XP rules in the backend QuestService
+   * (20 base XP x the type's multiplier). The backend
+   * calculates the real XP; these are for display only.
+   */
+  questTypes = [
+    {
+      name: 'QUICK WIN',
+      xp: 10,
+      hint: 'A tiny task, under 10 minutes.',
+      example: 'Get a glass of water.'
+    },
+    {
+      name: 'SELF-CARE',
+      xp: 20,
+      hint: 'Looking after yourself.',
+      example: 'Take your meds.'
+    },
+    {
+      name: 'CARETAKER',
+      xp: 25,
+      hint: 'Looking after pets or people.',
+      example: 'Feed the pets.'
+    },
+    {
+      name: 'CHORE',
+      xp: 30,
+      hint: 'House, errands, and admin.',
+      example: 'Do a load of laundry.'
+    },
+    {
+      name: 'MAIN QUEST',
+      xp: 40,
+      hint: 'The important thing today.',
+      example: 'Finish the assignment.'
+    },
+    {
+      name: 'BOSS FIGHT',
+      xp: 60,
+      hint: 'The task you have been avoiding.',
+      example: 'Call the dentist.'
+    }
+  ];
+
+
+  get newQuestTypeInfo() {
+
+    return this.questTypes.find(
+      type =>
+        type.name ===
+        this.newQuestType
+    );
+  }
 
 
   // =========================
   // RABBIT HOLES
   // =========================
 
-  currentRabbitHole:
-    RabbitHole | null = null;
+  currentRabbitHole =
+    signal<RabbitHole | null>(null);
 
-  rabbitHoleLibrary:
-    RabbitHole[] = [];
+  rabbitHoleLibrary =
+    signal<RabbitHole[]>([]);
 
-  followingRabbit = false;
+  followingRabbit = signal(false);
+
+  rabbitHoleReflection = '';
 
 
   // =========================
@@ -230,8 +286,8 @@ export class App {
     setTimeout(() => {
 
       if (
-        this.player.id === 0 &&
-        this.quests.length === 0
+        this.player().id === 0 &&
+        this.quests().length === 0
       ) {
 
         console.log(
@@ -267,7 +323,7 @@ export class App {
 
         next: player => {
 
-          this.player = player;
+          this.player.set(player);
 
           console.log(
             'Player loaded:',
@@ -301,7 +357,7 @@ export class App {
 
         next: data => {
 
-          this.quests = data;
+          this.quests.set(data);
 
           console.log(
             'Quests loaded:',
@@ -334,17 +390,6 @@ export class App {
     }
 
 
-    const xpRewards:
-      Record<string, number> = {
-
-        easy: 10,
-        normal: 20,
-        hard: 35,
-        legendary: 50
-
-      };
-
-
     const quest: Quest = {
 
       title:
@@ -357,15 +402,16 @@ export class App {
         this.newQuestType,
 
       priority:
-        this.newQuestDifficulty,
+        '',
 
       completed:
         false,
 
+      /*
+       * Replaced by the backend's calculation.
+       */
       xp:
-        xpRewards[
-          this.newQuestDifficulty
-        ]
+        0
     };
 
 
@@ -378,18 +424,15 @@ export class App {
 
         next: savedQuest => {
 
-          this.quests.push(
-            savedQuest
+          this.quests.update(
+            quests => [...quests, savedQuest]
           );
 
           this.newQuestTitle = '';
           this.newQuestDescription = '';
 
           this.newQuestType =
-            'SIDE QUEST';
-
-          this.newQuestDifficulty =
-            'normal';
+            'SELF-CARE';
 
         },
 
@@ -430,20 +473,14 @@ export class App {
 
         next: savedQuest => {
 
-          const index =
-            this.quests.findIndex(
+          this.quests.update(
+            quests => quests.map(
               q =>
-                q.id ===
-                savedQuest.id
-            );
-
-
-          if (index !== -1) {
-
-            this.quests[index] =
-              savedQuest;
-
-          }
+                q.id === savedQuest.id
+                  ? savedQuest
+                  : q
+            )
+          );
 
 
           /*
@@ -487,12 +524,13 @@ export class App {
 
         next: () => {
 
-          this.quests =
-            this.quests.filter(
+          this.quests.update(
+            quests => quests.filter(
               q =>
                 q.id !==
                 quest.id
-            );
+            )
+          );
 
           /*
            * A deleted completed quest may
@@ -520,13 +558,14 @@ export class App {
 
   getSidetracked(): void {
 
-    if (this.followingRabbit) {
+    if (this.followingRabbit()) {
       return;
     }
 
 
-    this.followingRabbit = true;
-    this.currentRabbitHole = null;
+    this.followingRabbit.set(true);
+    this.currentRabbitHole.set(null);
+    this.rabbitHoleReflection = '';
 
 
     this.http
@@ -544,12 +583,14 @@ export class App {
           );
 
 
-          this.currentRabbitHole =
-            rabbitHole;
+          this.currentRabbitHole.set(
+            rabbitHole
+          );
 
 
-          this.followingRabbit =
-            false;
+          this.followingRabbit.set(
+            false
+          );
 
 
           this.loadRabbitHoleLibrary();
@@ -565,8 +606,9 @@ export class App {
           );
 
 
-          this.followingRabbit =
-            false;
+          this.followingRabbit.set(
+            false
+          );
 
         }
 
@@ -596,16 +638,17 @@ export class App {
            * Only Rabbit Holes the user chose
            * to keep belong in the archive.
            */
-          this.rabbitHoleLibrary =
+          this.rabbitHoleLibrary.set(
             rabbitHoles.filter(
               rabbitHole =>
                 rabbitHole.status !==
                 'DISCOVERED'
-            );
+            )
+          );
 
           console.log(
             'Rabbit Hole library loaded:',
-            this.rabbitHoleLibrary
+            this.rabbitHoleLibrary()
           );
         },
 
@@ -627,8 +670,11 @@ export class App {
 
   saveRabbitHole(): void {
 
+    const currentRabbitHole =
+      this.currentRabbitHole();
+
     if (
-      !this.currentRabbitHole
+      !currentRabbitHole
     ) {
       return;
     }
@@ -636,15 +682,16 @@ export class App {
 
     this.http
       .put<RabbitHole>(
-        `${this.rabbitHoleApiUrl}/${this.currentRabbitHole.id}/save`,
+        `${this.rabbitHoleApiUrl}/${currentRabbitHole.id}/save`,
         {}
       )
       .subscribe({
 
         next: rabbitHole => {
 
-          this.currentRabbitHole =
-            rabbitHole;
+          this.currentRabbitHole.set(
+            rabbitHole
+          );
 
           this.loadRabbitHoleLibrary();
 
@@ -668,8 +715,11 @@ export class App {
 
   exploreRabbitHole(): void {
 
+    const currentRabbitHole =
+      this.currentRabbitHole();
+
     if (
-      !this.currentRabbitHole
+      !currentRabbitHole
     ) {
       return;
     }
@@ -677,15 +727,16 @@ export class App {
 
     this.http
       .put<RabbitHole>(
-        `${this.rabbitHoleApiUrl}/${this.currentRabbitHole.id}/explore`,
+        `${this.rabbitHoleApiUrl}/${currentRabbitHole.id}/explore`,
         {}
       )
       .subscribe({
 
         next: rabbitHole => {
 
-          this.currentRabbitHole =
-            rabbitHole;
+          this.currentRabbitHole.set(
+            rabbitHole
+          );
 
           this.loadRabbitHoleLibrary();
 
@@ -704,6 +755,63 @@ export class App {
 
 
   // =========================
+  // COMPLETE RABBIT HOLE
+  // =========================
+
+  completeRabbitHole(): void {
+
+    const currentRabbitHole =
+      this.currentRabbitHole();
+
+    if (
+      !currentRabbitHole
+    ) {
+      return;
+    }
+
+
+    this.http
+      .put<RabbitHole>(
+        `${this.rabbitHoleApiUrl}/${currentRabbitHole.id}/complete`,
+        {
+          reflection:
+            this.rabbitHoleReflection
+        }
+      )
+      .subscribe({
+
+        next: rabbitHole => {
+
+          this.currentRabbitHole.set(
+            rabbitHole
+          );
+
+          this.rabbitHoleReflection = '';
+
+
+          /*
+           * Completing a Rabbit Hole awards XP,
+           * so refresh the player afterward.
+           */
+          this.loadPlayer();
+
+          this.loadRabbitHoleLibrary();
+
+        },
+
+        error: error => {
+
+          console.error(
+            'Failed to complete Rabbit Hole.',
+            error
+          );
+        }
+
+      });
+  }
+
+
+  // =========================
   // OPEN ARCHIVED RABBIT HOLE
   // =========================
 
@@ -711,8 +819,11 @@ export class App {
     rabbitHole: RabbitHole
   ): void {
 
-    this.currentRabbitHole =
-      rabbitHole;
+    this.currentRabbitHole.set(
+      rabbitHole
+    );
+
+    this.rabbitHoleReflection = '';
 
 
     /*
