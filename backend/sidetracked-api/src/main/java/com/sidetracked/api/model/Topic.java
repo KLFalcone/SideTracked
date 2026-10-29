@@ -58,9 +58,22 @@ public class Topic {
     private String title;
 
     /*
-     * Primary world this topic belongs to.
+     * Slug of the primary World this topic belongs to,
+     * e.g. "atomic-age". See WorldCatalog.
      */
     private String world;
+
+    /*
+     * Slugs of other Worlds this topic connects to.
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "topic_worlds",
+        joinColumns = @JoinColumn(name = "topic_id")
+    )
+    @Column(name = "world_slug", nullable = false)
+    @OrderColumn(name = "world_order")
+    private List<String> relatedWorlds = new ArrayList<>();
 
     @Column(length = 2000)
     private String hook;
@@ -74,7 +87,8 @@ public class Topic {
     private LocalDateTime createdAt;
 
     /*
-     * Related worlds and subjects. A topic can cross many.
+     * Free-form themes that aren't Worlds,
+     * e.g. "UNSOLVED & UNEXPLAINED".
      */
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
@@ -134,6 +148,9 @@ public class Topic {
         this.researchPrompt = other.researchPrompt;
         this.xp = other.xp;
 
+        this.relatedWorlds.clear();
+        this.relatedWorlds.addAll(other.relatedWorlds);
+
         this.tags.clear();
         this.tags.addAll(other.tags);
 
@@ -175,6 +192,24 @@ public class Topic {
 
     public void setWorld(String world) {
         this.world = world;
+    }
+
+    public List<String> getRelatedWorlds() {
+        return relatedWorlds;
+    }
+
+    public void setRelatedWorlds(List<String> relatedWorlds) {
+        this.relatedWorlds = relatedWorlds;
+    }
+
+    /*
+     * True if the topic can be discovered from this World,
+     * either as its primary World or a related one.
+     */
+    public boolean belongsTo(String worldSlug) {
+
+        return worldSlug.equals(world)
+                || relatedWorlds.contains(worldSlug);
     }
 
     public String getHook() {

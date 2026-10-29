@@ -29,9 +29,20 @@ interface RabbitHoleSource {
 }
 
 
+interface World {
+  slug: string;
+  name: string;
+  tagline: string;
+  topicCount: number;
+  liveDiscovery: boolean;
+}
+
+
 interface RabbitHole {
   id: number;
+  sourceProvider: string;
   world: string;
+  relatedWorlds: string[];
   title: string;
   hook: string;
   researchPrompt: string;
@@ -64,14 +75,36 @@ export class App {
   // API ENDPOINTS
   // =========================
 
+  /*
+   * The one place the backend address is set.
+   */
+  private apiBaseUrl =
+    'http://localhost:8080/api';
+
   private questApiUrl =
-    'http://localhost:8080/api/quests';
+    `${this.apiBaseUrl}/quests`;
 
   private playerApiUrl =
-    'http://localhost:8080/api/player';
+    `${this.apiBaseUrl}/player`;
 
   private rabbitHoleApiUrl =
-    'http://localhost:8080/api/rabbit-holes';
+    `${this.apiBaseUrl}/rabbit-holes`;
+
+  private worldApiUrl =
+    `${this.apiBaseUrl}/worlds`;
+
+
+  // =========================
+  // CONNECTION
+  // =========================
+
+  /*
+   * True when the backend couldn't be reached,
+   * so the page can say so instead of looking empty.
+   */
+  connectionError = signal(false);
+
+  questError = signal<string | null>(null);
 
 
   // =========================
@@ -258,6 +291,30 @@ export class App {
 
   rabbitHoleReflection = '';
 
+  discoveryMessage = signal<string | null>(null);
+
+
+  // =========================
+  // WORLDS
+  // =========================
+
+  worlds = signal<World[]>([]);
+
+  discoveryMode:
+    'surprise' | 'world' = 'surprise';
+
+  selectedWorld = '';
+
+
+  get selectedWorldInfo(): World | undefined {
+
+    return this.worlds().find(
+      world =>
+        world.slug ===
+        this.selectedWorld
+    );
+  }
+
 
   // =========================
   // STARTUP
@@ -266,46 +323,45 @@ export class App {
   constructor(
     private http: HttpClient
   ) {
-    this.initializeApp();
-  }
-
-
-  private initializeApp(): void {
-
     this.loadAllPersistentState();
-
-    /*
-     * Development safety net.
-     *
-     * Angular may occasionally finish loading
-     * before the Spring Boot backend is ready.
-     *
-     * Retry once shortly after startup if the
-     * initial persistent state still looks empty.
-     */
-    setTimeout(() => {
-
-      if (
-        this.player().id === 0 &&
-        this.quests().length === 0
-      ) {
-
-        console.log(
-          'Initial state was empty. Retrying backend sync...'
-        );
-
-        this.loadAllPersistentState();
-      }
-
-    }, 1000);
   }
 
 
-  private loadAllPersistentState(): void {
+  loadAllPersistentState(): void {
+
+    this.connectionError.set(false);
 
     this.loadPlayer();
     this.loadQuests();
     this.loadRabbitHoleLibrary();
+    this.loadWorlds();
+  }
+
+
+  loadWorlds(): void {
+
+    this.http
+      .get<World[]>(
+        this.worldApiUrl
+      )
+      .subscribe({
+
+        next: worlds => {
+
+          this.worlds.set(worlds);
+        },
+
+        error: error => {
+
+          this.connectionError.set(true);
+
+          console.error(
+            'Failed to load Worlds.',
+            error
+          );
+        }
+
+      });
   }
 
 
@@ -332,6 +388,8 @@ export class App {
         },
 
         error: error => {
+
+          this.connectionError.set(true);
 
           console.error(
             'Failed to load player.',
@@ -367,6 +425,8 @@ export class App {
 
         error: error => {
 
+          this.connectionError.set(true);
+
           console.error(
             'Failed to load quests.',
             error
@@ -388,6 +448,8 @@ export class App {
     ) {
       return;
     }
+
+    this.questError.set(null);
 
 
     const quest: Quest = {
@@ -437,6 +499,12 @@ export class App {
         },
 
         error: error => {
+
+          this.questError.set(
+            error.status === 400
+              ? 'That quest couldn\'t be saved. Check the title isn\'t empty and the title and notes are under 255 characters.'
+              : 'That quest couldn\'t be saved. Is the server running?'
+          );
 
           console.error(
             'Failed to create quest.',
@@ -563,15 +631,39 @@ export class App {
     }
 
 
+    const worldSlug =
+      this.discoveryMode === 'world'
+        ? this.selectedWorld
+        : '';
+
+    if (
+      this.discoveryMode === 'world' &&
+      !worldSlug
+    ) {
+      return;
+    }
+
+
     this.followingRabbit.set(true);
     this.currentRabbitHole.set(null);
+    this.discoveryMessage.set(null);
     this.rabbitHoleReflection = '';
+
+
+    /*
+     * "Surprise Me" sends no World, so any World can come up.
+     */
+    const params: Record<string, string> =
+      worldSlug
+        ? { world: worldSlug }
+        : {};
 
 
     this.http
       .post<RabbitHole>(
         `${this.rabbitHoleApiUrl}/discover`,
-        {}
+        {},
+        { params }
       )
       .subscribe({
 
@@ -603,6 +695,13 @@ export class App {
           console.error(
             'Rabbit Hole discovery failed.',
             error
+          );
+
+
+          this.discoveryMessage.set(
+            error.status === 404
+              ? 'The rabbit found nothing in this World yet. Try another one.'
+              : 'The rabbit got lost. Is the server running?'
           );
 
 
@@ -653,6 +752,8 @@ export class App {
         },
 
         error: error => {
+
+          this.connectionError.set(true);
 
           console.error(
             'Failed to load Rabbit Hole library.',

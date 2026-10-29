@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sidetracked.api.model.Quest;
 import com.sidetracked.api.service.QuestService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/quests")
 @CrossOrigin(origins = "http://localhost:4200")
@@ -33,7 +35,7 @@ public class QuestController {
 
     @PostMapping
     public Quest createQuest(
-            @RequestBody Quest quest) {
+            @Valid @RequestBody Quest quest) {
 
         return questService.createQuest(quest);
     }
@@ -41,7 +43,7 @@ public class QuestController {
     @PutMapping("/{id}")
     public Quest updateQuest(
             @PathVariable Long id,
-            @RequestBody Quest updatedQuest) {
+            @Valid @RequestBody Quest updatedQuest) {
 
         return questService.updateQuest(
                 id,
