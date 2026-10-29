@@ -243,6 +243,12 @@
 
               </div>
 
+              @if (status.lastDone) {
+                <p class="timeline-last-done">
+                  {{ status.lastDone }}
+                </p>
+              }
+
               <p class="timeline-status">
                 {{ status.label }}
               </p>

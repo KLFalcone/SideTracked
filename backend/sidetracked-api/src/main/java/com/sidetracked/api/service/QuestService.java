@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.sidetracked.api.model.Quest;
 import com.sidetracked.api.model.QuestCompletion;
+import com.sidetracked.api.model.Times;
 import com.sidetracked.api.repository.QuestCompletionRepository;
 import com.sidetracked.api.repository.QuestRepository;
 
@@ -219,7 +220,7 @@ public class QuestService {
      */
     private Quest completeRepeatingQuest(Quest quest) {
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = Times.nowUtc();
 
         boolean early =
                 questCompletionRepository

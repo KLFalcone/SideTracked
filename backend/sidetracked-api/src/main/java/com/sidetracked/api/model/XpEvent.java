@@ -1,5 +1,6 @@
 package com.sidetracked.api.model;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -74,7 +75,7 @@ public class XpEvent {
         this.sourceId = sourceId;
         this.amount = amount;
         this.label = label;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Times.nowUtc();
         this.backfilled = false;
     }
 
@@ -102,8 +103,11 @@ public class XpEvent {
         return label;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    /*
+     * Sent as an Instant so the browser knows it's UTC.
+     */
+    public Instant getCreatedAt() {
+        return Times.toInstant(createdAt);
     }
 
     public boolean isBackfilled() {

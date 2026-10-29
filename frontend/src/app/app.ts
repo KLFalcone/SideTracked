@@ -28,6 +28,7 @@ interface Quest {
  */
 interface RepeatStatus {
   state: 'never' | 'early' | 'open' | 'overdue';
+  lastDone: string | null;
   label: string;
   nowPct: number | null;
   windowStartPct: number;
@@ -98,9 +99,14 @@ export class App {
 
   /*
    * The one place the backend address is set.
+   *
+   * Relative, so the API is always reached through the same
+   * address as the page. In development the Angular dev server
+   * passes /api on to Spring Boot (proxy.conf.json), which also
+   * works when the page is opened from a phone on the same Wi-Fi.
    */
   private apiBaseUrl =
-    'http://localhost:8080/api';
+    '/api';
 
   private questApiUrl =
     `${this.apiBaseUrl}/quests`;
@@ -388,6 +394,7 @@ export class App {
 
       return {
         state: 'never',
+        lastDone: null,
         label: 'Not done yet. Tap DONE when you do it.',
         nowPct: null,
         windowStartPct,
@@ -395,21 +402,30 @@ export class App {
       };
     }
 
+    const lastDoneMs =
+      new Date(quest.lastCompletedAt).getTime();
+
     const hours =
-      (this.now() - new Date(quest.lastCompletedAt).getTime())
-      / 3_600_000;
+      (this.now() - lastDoneMs) / 3_600_000;
 
     const nowPct =
       Math.min(100, Math.max(0, hours / scale * 100));
 
-    const ago =
-      `Last done ${this.formatHours(hours)} ago`;
+    const lastDone =
+      `Last done ${this.formatClock(lastDoneMs)} · ${this.formatHours(hours)} ago`;
+
+    const opens =
+      this.formatClock(lastDoneMs + start * 3_600_000);
+
+    const closes =
+      this.formatClock(lastDoneMs + end * 3_600_000);
 
     if (hours < start) {
 
       return {
         state: 'early',
-        label: `${ago} · window opens in ${this.formatHours(start - hours)}`,
+        lastDone,
+        label: `On time from ${opens} to ${closes} · opens in ${this.formatHours(start - hours)}`,
         nowPct,
         windowStartPct,
         windowEndPct
@@ -420,7 +436,8 @@ export class App {
 
       return {
         state: 'open',
-        label: `${ago} · on time now, window closes in ${this.formatHours(end - hours)}`,
+        lastDone,
+        label: `On time now, until ${closes} (${this.formatHours(end - hours)} left)`,
         nowPct,
         windowStartPct,
         windowEndPct
@@ -429,11 +446,41 @@ export class App {
 
     return {
       state: 'overdue',
-      label: `${ago} · overdue by ${this.formatHours(hours - end)}`,
+      lastDone,
+      label: `Overdue since ${closes} (${this.formatHours(hours - end)})`,
       nowPct,
       windowStartPct,
       windowEndPct
     };
+  }
+
+
+  /*
+   * A time on this device's clock: "6:49 PM" today,
+   * otherwise with the day, e.g. "Fri 6:49 PM".
+   */
+  private formatClock(ms: number): string {
+
+    const date = new Date(ms);
+
+    const time = date.toLocaleTimeString([], {
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+
+    const sameDay =
+      date.toDateString() ===
+      new Date(this.now()).toDateString();
+
+    if (sameDay) {
+      return time;
+    }
+
+    const day = date.toLocaleDateString([], {
+      weekday: 'short'
+    });
+
+    return `${day} ${time}`;
   }
 
 

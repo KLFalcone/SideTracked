@@ -1,8 +1,10 @@
 package com.sidetracked.api.model;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -61,10 +63,11 @@ public class Quest {
     /*
      * When a repeating quest was last done. Filled in by the
      * service when quests are sent to the browser; not stored here
-     * (completions live in quest_completions).
+     * (completions live in quest_completions). Sent as an Instant
+     * so the browser knows it's UTC.
      */
     @Transient
-    private LocalDateTime lastCompletedAt;
+    private Instant lastCompletedAt;
 
     public Quest() {
     }
@@ -102,12 +105,16 @@ public class Quest {
         this.windowEndHours = windowEndHours;
     }
 
-    public LocalDateTime getLastCompletedAt() {
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    public Instant getLastCompletedAt() {
         return lastCompletedAt;
     }
 
-    public void setLastCompletedAt(LocalDateTime lastCompletedAt) {
-        this.lastCompletedAt = lastCompletedAt;
+    /*
+     * Takes a completion's stored UTC time.
+     */
+    public void setLastCompletedAt(LocalDateTime completedAtUtc) {
+        this.lastCompletedAt = Times.toInstant(completedAtUtc);
     }
 
     public Long getUserId() {
