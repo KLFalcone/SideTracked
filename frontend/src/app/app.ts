@@ -98,9 +98,14 @@ export class App {
 
   /*
    * The one place the backend address is set.
+   *
+   * Relative, so the API is always reached through the same
+   * address as the page. In development the Angular dev server
+   * passes /api on to Spring Boot (proxy.conf.json), which also
+   * works when the page is opened from a phone on the same Wi-Fi.
    */
   private apiBaseUrl =
-    'http://localhost:8080/api';
+    '/api';
 
   private questApiUrl =
     `${this.apiBaseUrl}/quests`;
