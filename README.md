@@ -1,6 +1,6 @@
 # SideTracked
 
-> **Status:** Active development (as of Oct. 5, 2026)
+> **Status:** Active development (as of Oct. 29, 2026)
 
 Turn getting sidetracked into progress.
 
