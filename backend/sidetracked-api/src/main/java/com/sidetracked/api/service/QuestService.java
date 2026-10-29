@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.sidetracked.api.model.Quest;
+import com.sidetracked.api.model.QuestCompletion;
+import com.sidetracked.api.repository.QuestCompletionRepository;
 import com.sidetracked.api.repository.QuestRepository;
 
 @Service
@@ -39,15 +41,18 @@ public class QuestService {
             );
 
     private final QuestRepository questRepository;
+    private final QuestCompletionRepository questCompletionRepository;
     private final PlayerService playerService;
     private final CurrentUserService currentUserService;
 
     public QuestService(
             QuestRepository questRepository,
+            QuestCompletionRepository questCompletionRepository,
             PlayerService playerService,
             CurrentUserService currentUserService) {
 
         this.questRepository = questRepository;
+        this.questCompletionRepository = questCompletionRepository;
         this.playerService = playerService;
         this.currentUserService = currentUserService;
     }
@@ -123,23 +128,43 @@ public class QuestService {
 
         Quest savedQuest = questRepository.save(quest);
 
-        playerService.awardQuestXp(
-                savedQuest.getXp()
+        QuestCompletion completion =
+                questCompletionRepository.save(
+                        new QuestCompletion(savedQuest.getId())
+                );
+
+        playerService.recordQuestCompleted(
+                savedQuest,
+                completion
         );
 
         return savedQuest;
     }
 
+    /*
+     * Deleting a completed quest takes its XP back. Each reversal
+     * is recorded in the XP history rather than erasing the
+     * original reward.
+     */
     @Transactional
     public void deleteQuest(Long id) {
 
         Quest quest = getQuestById(id);
 
-        if (quest.isCompleted()) {
-            playerService.removeQuestXp(
-                    quest.getXp()
+        List<QuestCompletion> completions =
+                questCompletionRepository.findByQuestId(
+                        quest.getId()
+                );
+
+        for (QuestCompletion completion : completions) {
+
+            playerService.recordQuestDeleted(
+                    quest,
+                    completion
             );
         }
+
+        questCompletionRepository.deleteAll(completions);
 
         questRepository.delete(quest);
     }

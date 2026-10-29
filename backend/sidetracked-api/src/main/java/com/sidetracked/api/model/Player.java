@@ -28,7 +28,7 @@ public class Player {
 
     private int xp;
     private int questsCompleted;
-    private int encountersCompleted;
+    private int rabbitHolesCompleted;
 
     public Player() {
     }
@@ -61,11 +61,11 @@ public class Player {
         this.questsCompleted = questsCompleted;
     }
 
-    public int getEncountersCompleted() {
-        return encountersCompleted;
+    public int getRabbitHolesCompleted() {
+        return rabbitHolesCompleted;
     }
 
-    public void setEncountersCompleted(int encountersCompleted) {
-        this.encountersCompleted = encountersCompleted;
+    public void setRabbitHolesCompleted(int rabbitHolesCompleted) {
+        this.rabbitHolesCompleted = rabbitHolesCompleted;
     }
 }

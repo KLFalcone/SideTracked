@@ -232,8 +232,8 @@ public class RabbitHoleService {
          */
         rabbitHole.setReflection(reflection);
 
-        playerService.awardEncounterXp(
-                rabbitHole.getTopic().getXp()
+        playerService.recordRabbitHoleCompleted(
+                rabbitHole
         );
 
         return RabbitHoleView.from(rabbitHole);

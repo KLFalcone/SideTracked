@@ -1,11 +1,14 @@
 package com.sidetracked.api.controller;
 
+import java.util.List;
+
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sidetracked.api.model.Player;
+import com.sidetracked.api.model.XpEvent;
 import com.sidetracked.api.service.PlayerService;
 
 @RestController
@@ -24,5 +27,10 @@ public class PlayerController {
     @GetMapping
     public Player getPlayer() {
         return playerService.getPlayer();
+    }
+
+    @GetMapping("/xp-history")
+    public List<XpEvent> getXpHistory() {
+        return playerService.getXpHistory();
     }
 }
