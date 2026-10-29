@@ -1,5 +1,8 @@
 package com.sidetracked.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,6 +17,15 @@ public class Player {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /*
+     * The user this game profile belongs to.
+     * Set by the backend only; never sent to or read
+     * from the browser.
+     */
+    @JsonIgnore
+    @Column(nullable = false, unique = true)
+    private Long userId;
+
     private int xp;
     private int questsCompleted;
     private int encountersCompleted;
@@ -23,6 +35,14 @@ public class Player {
 
     public Long getId() {
         return id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public int getXp() {

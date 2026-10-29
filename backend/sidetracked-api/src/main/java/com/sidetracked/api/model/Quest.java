@@ -1,5 +1,8 @@
 package com.sidetracked.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,6 +14,15 @@ public class Quest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /*
+     * The user who owns this quest.
+     * Set by the backend only; never sent to or read
+     * from the browser.
+     */
+    @JsonIgnore
+    @Column(nullable = false)
+    private Long userId;
 
     private String title;
     private String description;
@@ -24,6 +36,14 @@ public class Quest {
 
     public Long getId() {
         return id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getTitle() {
