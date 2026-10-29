@@ -3,8 +3,10 @@ package com.sidetracked.api.service;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.sidetracked.api.model.Quest;
 import com.sidetracked.api.repository.QuestRepository;
@@ -38,20 +40,33 @@ public class QuestService {
 
     private final QuestRepository questRepository;
     private final PlayerService playerService;
+    private final CurrentUserService currentUserService;
 
     public QuestService(
             QuestRepository questRepository,
-            PlayerService playerService) {
+            PlayerService playerService,
+            CurrentUserService currentUserService) {
 
         this.questRepository = questRepository;
         this.playerService = playerService;
+        this.currentUserService = currentUserService;
     }
 
+    /*
+     * Only the current user's quests are ever returned.
+     */
     public List<Quest> getAllQuests() {
-        return questRepository.findAll();
+
+        return questRepository.findByUserId(
+                currentUserService.getCurrentUserId()
+        );
     }
 
     public Quest createQuest(Quest quest) {
+
+        quest.setUserId(
+                currentUserService.getCurrentUserId()
+        );
 
         quest.setCompleted(false);
 
@@ -129,12 +144,20 @@ public class QuestService {
         questRepository.delete(quest);
     }
 
+    /*
+     * Another user's quest is treated exactly like a quest
+     * that doesn't exist, so its existence is never revealed.
+     */
     private Quest getQuestById(Long id) {
 
         return questRepository
-                .findById(id)
+                .findByIdAndUserId(
+                        id,
+                        currentUserService.getCurrentUserId()
+                )
                 .orElseThrow(
-                        () -> new IllegalArgumentException(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
                                 "Quest not found: " + id
                         )
                 );

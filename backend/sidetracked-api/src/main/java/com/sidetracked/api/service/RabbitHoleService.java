@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.sidetracked.api.model.RabbitHole;
 import com.sidetracked.api.model.RabbitHole.RabbitHoleSource;
@@ -210,7 +212,8 @@ public class RabbitHoleService {
         return rabbitHoleRepository
                 .findById(id)
                 .orElseThrow(
-                        () -> new IllegalArgumentException(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
                                 "Rabbit Hole not found: " + id
                         )
                 );
