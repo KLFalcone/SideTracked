@@ -103,10 +103,25 @@ public class PlayerService {
         return player;
     }
 
+    /*
+     * Takes back the XP a completion earned. A completion that
+     * earned nothing (an early repeat) is left as it is.
+     */
     @Transactional
     public Player recordQuestDeleted(
             Quest quest,
             QuestCompletion completion) {
+
+        boolean wasRewarded =
+                xpEventRepository.existsByUserIdAndSourceTypeAndSourceId(
+                        currentUserService.getCurrentUserId(),
+                        XpSourceType.QUEST_COMPLETED,
+                        completion.getId()
+                );
+
+        if (!wasRewarded) {
+            return getPlayer();
+        }
 
         Player player = record(
                 XpSourceType.QUEST_DELETED,

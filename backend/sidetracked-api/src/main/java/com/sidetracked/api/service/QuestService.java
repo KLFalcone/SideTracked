@@ -1,7 +1,9 @@
 package com.sidetracked.api.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -59,15 +61,44 @@ public class QuestService {
 
     /*
      * Only the current user's quests are ever returned.
+     * Repeating quests come with when they were last done.
      */
     public List<Quest> getAllQuests() {
 
-        return questRepository.findByUserId(
-                currentUserService.getCurrentUserId()
-        );
+        List<Quest> quests =
+                questRepository.findByUserId(
+                        currentUserService.getCurrentUserId()
+                );
+
+        List<Long> repeatingIds =
+                quests.stream()
+                        .filter(Quest::isRepeating)
+                        .map(Quest::getId)
+                        .toList();
+
+        if (!repeatingIds.isEmpty()) {
+
+            Map<Long, LocalDateTime> lastDone =
+                    questCompletionRepository
+                            .findByQuestIdIn(repeatingIds)
+                            .stream()
+                            .collect(Collectors.toMap(
+                                    QuestCompletion::getQuestId,
+                                    QuestCompletion::getCompletedAt,
+                                    (a, b) -> a.isAfter(b) ? a : b
+                            ));
+
+            quests.forEach(quest ->
+                    quest.setLastCompletedAt(lastDone.get(quest.getId()))
+            );
+        }
+
+        return quests;
     }
 
     public Quest createQuest(Quest quest) {
+
+        checkSchedule(quest);
 
         quest.setUserId(
                 currentUserService.getCurrentUserId()
@@ -84,6 +115,38 @@ public class QuestService {
         );
 
         return questRepository.save(quest);
+    }
+
+    /*
+     * A quest either has no schedule, or a complete one where
+     * 1 <= window start <= repeat every <= window end <= 168 hours
+     * (one week).
+     */
+    private void checkSchedule(Quest quest) {
+
+        Integer every = quest.getRepeatEveryHours();
+        Integer start = quest.getWindowStartHours();
+        Integer end = quest.getWindowEndHours();
+
+        if (every == null && start == null && end == null) {
+            return;
+        }
+
+        boolean valid =
+                every != null && start != null && end != null
+                        && start >= 1
+                        && start <= every
+                        && every <= end
+                        && end <= 168;
+
+        if (!valid) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "A repeating quest needs: 1 <= window start <= "
+                            + "repeat every <= window end <= 168 hours."
+            );
+        }
     }
 
     private int calculateXp(String type) {
@@ -120,6 +183,10 @@ public class QuestService {
 
         Quest quest = getQuestById(id);
 
+        if (quest.isRepeating()) {
+            return completeRepeatingQuest(quest);
+        }
+
         if (quest.isCompleted()) {
             return quest;
         }
@@ -142,9 +209,53 @@ public class QuestService {
     }
 
     /*
+     * A repeating quest never becomes "completed": each time it's
+     * done, a timestamped completion is logged.
+     *
+     * XP is earned when it's done on time or late. Done early
+     * (before the window opens) it is still logged, because for
+     * things like medication the log matters most, but earns no XP,
+     * so XP can't be farmed by repeated clicks.
+     */
+    private Quest completeRepeatingQuest(Quest quest) {
+
+        LocalDateTime now = LocalDateTime.now();
+
+        boolean early =
+                questCompletionRepository
+                        .findTopByQuestIdOrderByCompletedAtDesc(quest.getId())
+                        .map(last ->
+                                now.isBefore(
+                                        last.getCompletedAt().plusHours(
+                                                quest.getWindowStartHours()
+                                        )
+                                )
+                        )
+                        .orElse(false);
+
+        QuestCompletion completion =
+                questCompletionRepository.save(
+                        new QuestCompletion(quest.getId())
+                );
+
+        if (!early) {
+
+            playerService.recordQuestCompleted(
+                    quest,
+                    completion
+            );
+        }
+
+        quest.setLastCompletedAt(completion.getCompletedAt());
+
+        return quest;
+    }
+
+    /*
      * Deleting a completed quest takes its XP back. Each reversal
      * is recorded in the XP history rather than erasing the
-     * original reward.
+     * original reward. (Early completions of a repeating quest
+     * earned nothing, so there is nothing to take back for them.)
      */
     @Transactional
     public void deleteQuest(Long id) {

@@ -1,5 +1,7 @@
 package com.sidetracked.api.model;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -7,6 +9,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -46,11 +49,65 @@ public class Quest {
     private boolean completed;
     private int xp;
 
+    /*
+     * Repeating quests (all three set) or a regular one-off quest
+     * (all three null). Example: medication every 8 hours, on time
+     * anywhere from 6 to 10 hours after the last dose.
+     */
+    private Integer repeatEveryHours;
+    private Integer windowStartHours;
+    private Integer windowEndHours;
+
+    /*
+     * When a repeating quest was last done. Filled in by the
+     * service when quests are sent to the browser; not stored here
+     * (completions live in quest_completions).
+     */
+    @Transient
+    private LocalDateTime lastCompletedAt;
+
     public Quest() {
     }
 
     public Long getId() {
         return id;
+    }
+
+    @JsonIgnore
+    public boolean isRepeating() {
+        return repeatEveryHours != null;
+    }
+
+    public Integer getRepeatEveryHours() {
+        return repeatEveryHours;
+    }
+
+    public void setRepeatEveryHours(Integer repeatEveryHours) {
+        this.repeatEveryHours = repeatEveryHours;
+    }
+
+    public Integer getWindowStartHours() {
+        return windowStartHours;
+    }
+
+    public void setWindowStartHours(Integer windowStartHours) {
+        this.windowStartHours = windowStartHours;
+    }
+
+    public Integer getWindowEndHours() {
+        return windowEndHours;
+    }
+
+    public void setWindowEndHours(Integer windowEndHours) {
+        this.windowEndHours = windowEndHours;
+    }
+
+    public LocalDateTime getLastCompletedAt() {
+        return lastCompletedAt;
+    }
+
+    public void setLastCompletedAt(LocalDateTime lastCompletedAt) {
+        this.lastCompletedAt = lastCompletedAt;
     }
 
     public Long getUserId() {

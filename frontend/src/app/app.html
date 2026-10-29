@@ -108,6 +108,47 @@
     </p>
   }
 
+  <label class="repeat-toggle">
+    <input
+      type="checkbox"
+      [(ngModel)]="newQuestRepeats">
+    Repeats on a schedule
+  </label>
+
+  @if (newQuestRepeats) {
+
+    <div class="repeat-fields">
+
+      <label>
+        Every
+        <input
+          type="number"
+          min="1"
+          max="168"
+          [(ngModel)]="newQuestEvery">
+        hours,
+      </label>
+
+      <label>
+        on time from
+        <input
+          type="number"
+          min="1"
+          max="168"
+          [(ngModel)]="newQuestWindowStart">
+        to
+        <input
+          type="number"
+          min="1"
+          max="168"
+          [(ngModel)]="newQuestWindowEnd">
+        hours after the last time.
+      </label>
+
+    </div>
+
+  }
+
   <button (click)="createQuest()">
     + ADD QUEST
   </button>
@@ -136,6 +177,28 @@
       </p>
     }
 
+    @if (questNotice(); as notice) {
+      <p class="discovery-message" role="status">
+        {{ notice }}
+      </p>
+    }
+
+    @if (hasRepeatingQuests && alertsSupported && !alertsEnabled()) {
+
+      <p class="alerts-offer">
+        Want a heads-up when a repeating quest is due?
+        <button
+          class="secondary-button small-button"
+          (click)="enableAlerts()">
+          ENABLE ALERTS
+        </button>
+        <span class="alerts-note">
+          Works while SideTracked is open in a tab.
+        </span>
+      </p>
+
+    }
+
     @for (quest of quests(); track quest.id) {
 
       @if (!quest.completed) {
@@ -149,6 +212,44 @@
           <h3>{{ quest.title }}</h3>
 
           <p>{{ quest.description }}</p>
+
+          @if (quest.repeatEveryHours) {
+
+            @let status = repeatStatus(quest);
+
+            <div
+              class="repeat-timeline"
+              [attr.data-state]="status.state">
+
+              <p class="repeat-schedule">
+                ↻ EVERY {{ quest.repeatEveryHours }}H
+                // ON TIME {{ quest.windowStartHours }}–{{ quest.windowEndHours }}H
+              </p>
+
+              <div class="timeline-track">
+
+                <div
+                  class="timeline-window"
+                  [style.left.%]="status.windowStartPct"
+                  [style.width.%]="status.windowEndPct - status.windowStartPct">
+                </div>
+
+                @if (status.nowPct !== null) {
+                  <div
+                    class="timeline-now"
+                    [style.left.%]="status.nowPct">
+                  </div>
+                }
+
+              </div>
+
+              <p class="timeline-status">
+                {{ status.label }}
+              </p>
+
+            </div>
+
+          }
 
           <div class="quest-meta">
 
@@ -165,7 +266,7 @@
           <div class="quest-actions">
 
             <button (click)="completeQuest(quest)">
-              COMPLETE
+              {{ quest.repeatEveryHours ? 'DONE' : 'COMPLETE' }}
             </button>
 
             <button

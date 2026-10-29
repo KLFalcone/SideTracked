@@ -76,6 +76,14 @@ class PlayerServiceTest {
                     return event;
                 });
 
+        when(xpEventRepository.existsByUserIdAndSourceTypeAndSourceId(
+                any(), any(), any()))
+                .thenAnswer(call -> events.stream().anyMatch(e ->
+                        e.getUserId().equals(call.getArgument(0))
+                                && e.getSourceType() == call.getArgument(1)
+                                && e.getSourceId().equals(call.getArgument(2))
+                ));
+
         CurrentUserService currentUserService =
                 mock(CurrentUserService.class);
 
@@ -152,6 +160,25 @@ class PlayerServiceTest {
         assertThat(events)
                 .extracting(XpEvent::getAmount)
                 .containsExactly(20, -20);
+    }
+
+
+    @Test
+    void deletingACompletionThatEarnedNothingTakesNothingBack() {
+
+        Quest medication = quest("medicate nux", 25);
+
+        service.recordQuestCompleted(medication, completion(1L));
+
+        /* Completion 2 was an early dose: logged, never rewarded. */
+        service.recordQuestDeleted(medication, completion(1L));
+        service.recordQuestDeleted(medication, completion(2L));
+
+        assertThat(player.getXp()).isZero();
+
+        assertThat(events)
+                .extracting(XpEvent::getAmount)
+                .containsExactly(25, -25);
     }
 
 

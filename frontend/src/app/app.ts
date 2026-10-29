@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
@@ -11,6 +11,27 @@ interface Quest {
   priority: string;
   completed: boolean;
   xp: number;
+
+  /*
+   * Set only on repeating quests.
+   */
+  repeatEveryHours?: number | null;
+  windowStartHours?: number | null;
+  windowEndHours?: number | null;
+  lastCompletedAt?: string | null;
+}
+
+
+/*
+ * Where a repeating quest is in its cycle, for the timeline.
+ * Percentages are positions along the timeline bar.
+ */
+interface RepeatStatus {
+  state: 'never' | 'early' | 'open' | 'overdue';
+  label: string;
+  nowPct: number | null;
+  windowStartPct: number;
+  windowEndPct: number;
 }
 
 
@@ -291,6 +312,210 @@ export class App {
     );
   }
 
+  questNotice = signal<string | null>(null);
+
+
+  // =========================
+  // REPEATING QUESTS
+  // =========================
+
+  /*
+   * New-quest schedule. Defaults suit something like
+   * medication: every 8 hours, on time from 6 to 10.
+   */
+  newQuestRepeats = false;
+  newQuestEvery = 8;
+  newQuestWindowStart = 6;
+  newQuestWindowEnd = 10;
+
+  /*
+   * The current time, ticking every 30 seconds so
+   * timelines move without a page refresh.
+   */
+  now = signal(Date.now());
+
+  alertsSupported =
+    typeof Notification !== 'undefined';
+
+  alertsEnabled = signal(
+    this.alertsSupported &&
+    Notification.permission === 'granted'
+  );
+
+  /*
+   * Alerts already shown, so each one appears once per cycle.
+   */
+  private shownAlerts = new Set<string>();
+
+
+  get hasRepeatingQuests(): boolean {
+
+    return this.quests().some(
+      quest => !!quest.repeatEveryHours
+    );
+  }
+
+
+  isScheduleValid(): boolean {
+
+    const every = this.newQuestEvery;
+    const start = this.newQuestWindowStart;
+    const end = this.newQuestWindowEnd;
+
+    return [every, start, end].every(Number.isInteger)
+      && start >= 1
+      && start <= every
+      && every <= end
+      && end <= 168;
+  }
+
+
+  repeatStatus(quest: Quest): RepeatStatus {
+
+    const start = quest.windowStartHours ?? 0;
+    const end = quest.windowEndHours ?? 0;
+
+    /*
+     * The bar runs a bit past the window so "overdue"
+     * has room to show.
+     */
+    const scale = end * 1.25;
+
+    const windowStartPct = start / scale * 100;
+    const windowEndPct = end / scale * 100;
+
+    if (!quest.lastCompletedAt) {
+
+      return {
+        state: 'never',
+        label: 'Not done yet. Tap DONE when you do it.',
+        nowPct: null,
+        windowStartPct,
+        windowEndPct
+      };
+    }
+
+    const hours =
+      (this.now() - new Date(quest.lastCompletedAt).getTime())
+      / 3_600_000;
+
+    const nowPct =
+      Math.min(100, Math.max(0, hours / scale * 100));
+
+    const ago =
+      `Last done ${this.formatHours(hours)} ago`;
+
+    if (hours < start) {
+
+      return {
+        state: 'early',
+        label: `${ago} · window opens in ${this.formatHours(start - hours)}`,
+        nowPct,
+        windowStartPct,
+        windowEndPct
+      };
+    }
+
+    if (hours <= end) {
+
+      return {
+        state: 'open',
+        label: `${ago} · on time now, window closes in ${this.formatHours(end - hours)}`,
+        nowPct,
+        windowStartPct,
+        windowEndPct
+      };
+    }
+
+    return {
+      state: 'overdue',
+      label: `${ago} · overdue by ${this.formatHours(hours - end)}`,
+      nowPct,
+      windowStartPct,
+      windowEndPct
+    };
+  }
+
+
+  /*
+   * 0.75 -> "45m", 5.2 -> "5h 12m"
+   */
+  private formatHours(hours: number): string {
+
+    const minutes = Math.max(0, Math.round(hours * 60));
+
+    if (minutes < 60) {
+      return `${minutes}m`;
+    }
+
+    return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  }
+
+
+  enableAlerts(): void {
+
+    if (!this.alertsSupported) {
+      return;
+    }
+
+    Notification.requestPermission().then(permission => {
+
+      this.alertsEnabled.set(
+        permission === 'granted'
+      );
+
+      this.checkRepeatAlerts();
+    });
+  }
+
+
+  /*
+   * Shows a browser notification once when a repeating quest's
+   * window opens, and once more if it becomes overdue. Only works
+   * while SideTracked is open in a tab.
+   */
+  private checkRepeatAlerts(): void {
+
+    if (!this.alertsEnabled()) {
+      return;
+    }
+
+    for (const quest of this.quests()) {
+
+      if (
+        !quest.repeatEveryHours ||
+        !quest.lastCompletedAt
+      ) {
+        continue;
+      }
+
+      const status = this.repeatStatus(quest);
+
+      if (
+        status.state !== 'open' &&
+        status.state !== 'overdue'
+      ) {
+        continue;
+      }
+
+      const key =
+        `${quest.id}|${quest.lastCompletedAt}|${status.state}`;
+
+      if (this.shownAlerts.has(key)) {
+        continue;
+      }
+
+      this.shownAlerts.add(key);
+
+      new Notification(
+        status.state === 'open'
+          ? `Time for: ${quest.title}`
+          : `Overdue: ${quest.title}`,
+        { body: status.label }
+      );
+    }
+  }
+
 
   // =========================
   // RABBIT HOLES
@@ -339,6 +564,21 @@ export class App {
     private http: HttpClient
   ) {
     this.loadAllPersistentState();
+
+    /*
+     * Tick every 30 seconds so repeating-quest timelines
+     * stay current, and check whether an alert is due.
+     */
+    const clock = setInterval(() => {
+
+      this.now.set(Date.now());
+      this.checkRepeatAlerts();
+
+    }, 30_000);
+
+    inject(DestroyRef).onDestroy(
+      () => clearInterval(clock)
+    );
   }
 
 
@@ -432,6 +672,8 @@ export class App {
 
           this.quests.set(data);
 
+          this.checkRepeatAlerts();
+
           console.log(
             'Quests loaded:',
             data
@@ -466,6 +708,18 @@ export class App {
 
     this.questError.set(null);
 
+    if (
+      this.newQuestRepeats &&
+      !this.isScheduleValid()
+    ) {
+
+      this.questError.set(
+        'For a repeating quest, use whole hours where "on time from" ≤ "every" ≤ "until", up to 168 (one week).'
+      );
+
+      return;
+    }
+
 
     const quest: Quest = {
 
@@ -488,7 +742,16 @@ export class App {
        * Replaced by the backend's calculation.
        */
       xp:
-        0
+        0,
+
+      repeatEveryHours:
+        this.newQuestRepeats ? this.newQuestEvery : null,
+
+      windowStartHours:
+        this.newQuestRepeats ? this.newQuestWindowStart : null,
+
+      windowEndHours:
+        this.newQuestRepeats ? this.newQuestWindowEnd : null
     };
 
 
@@ -510,6 +773,8 @@ export class App {
 
           this.newQuestType =
             'SELF-CARE';
+
+          this.newQuestRepeats = false;
 
         },
 
@@ -544,6 +809,23 @@ export class App {
       !quest.id
     ) {
       return;
+    }
+
+    this.questNotice.set(null);
+
+
+    /*
+     * The backend logs an early repeat without XP;
+     * say so instead of leaving the user wondering.
+     */
+    if (
+      quest.repeatEveryHours &&
+      this.repeatStatus(quest).state === 'early'
+    ) {
+
+      this.questNotice.set(
+        `"${quest.title}" logged early, so no XP this time.`
+      );
     }
 
 
@@ -595,6 +877,15 @@ export class App {
   ): void {
 
     if (!quest.id) {
+      return;
+    }
+
+    if (
+      quest.repeatEveryHours &&
+      !window.confirm(
+        `Delete "${quest.title}"? This also takes back the XP its completions earned.`
+      )
+    ) {
       return;
     }
 
