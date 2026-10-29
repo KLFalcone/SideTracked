@@ -233,6 +233,123 @@ select:focus {
   grid-column: 1 / -1;
 }
 
+/* =========================
+   REPEATING QUESTS
+   ========================= */
+
+.repeat-toggle {
+  grid-column: 1 / -1;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: var(--muted);
+
+  font-size: 14px;
+}
+
+.repeat-fields {
+  grid-column: 1 / -1;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+
+  color: var(--muted);
+
+  font-size: 14px;
+}
+
+.repeat-fields input {
+  width: 4.5em;
+
+  margin: 0 4px;
+  padding: 6px 8px;
+}
+
+.repeat-timeline {
+  margin: 14px 0 4px;
+}
+
+.repeat-schedule {
+  margin: 0 0 8px;
+
+  color: var(--accent-light);
+
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+
+  letter-spacing: 1px;
+}
+
+.timeline-track {
+  position: relative;
+
+  height: 8px;
+
+  background: var(--panel-dark);
+
+  border: 1px solid var(--border);
+}
+
+.timeline-window {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+
+  background: var(--accent-dark);
+}
+
+.timeline-now {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+
+  width: 3px;
+
+  margin-left: -1px;
+
+  background: var(--text);
+}
+
+.timeline-status {
+  margin: 8px 0 0;
+
+  color: var(--muted);
+
+  font-size: 13px;
+}
+
+.repeat-timeline[data-state="open"] .timeline-status {
+  color: var(--accent-light);
+}
+
+.repeat-timeline[data-state="overdue"] .timeline-status {
+  color: #e899a5;
+}
+
+.repeat-timeline[data-state="overdue"] .timeline-now {
+  background: #e899a5;
+}
+
+.alerts-offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+
+  color: var(--muted);
+
+  font-size: 14px;
+}
+
+.alerts-note {
+  color: var(--dim);
+
+  font-size: 12px;
+}
+
 .quest-type-hint {
   align-self: center;
 
