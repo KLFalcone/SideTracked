@@ -252,6 +252,46 @@ public class QuestService {
     }
 
     /*
+     * Undoes the most recent completion of a repeating quest
+     * (e.g. DONE tapped by mistake): the completion is removed and
+     * any XP it earned is taken back, recorded in the XP history.
+     */
+    @Transactional
+    public Quest undoLastCompletion(Long id) {
+
+        Quest quest = getQuestById(id);
+
+        if (!quest.isRepeating()) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Only repeating quests can undo their last completion."
+            );
+        }
+
+        QuestCompletion last =
+                questCompletionRepository
+                        .findTopByQuestIdOrderByCompletedAtDesc(quest.getId())
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Nothing to undo."
+                        ));
+
+        playerService.recordCompletionUndone(quest, last);
+
+        questCompletionRepository.delete(last);
+
+        quest.setLastCompletedAt(
+                questCompletionRepository
+                        .findTopByQuestIdOrderByCompletedAtDesc(quest.getId())
+                        .map(QuestCompletion::getCompletedAt)
+                        .orElse(null)
+        );
+
+        return quest;
+    }
+
+    /*
      * Deleting a completed quest takes its XP back. Each reversal
      * is recorded in the XP history rather than erasing the
      * original reward. (Early completions of a repeating quest

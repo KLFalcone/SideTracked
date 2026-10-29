@@ -182,6 +182,25 @@ class PlayerServiceTest {
     }
 
 
+    @Test
+    void undoingARewardedCompletionIsRecordedAsUndone() {
+
+        Quest medication = quest("medicate nux", 25);
+
+        service.recordQuestCompleted(medication, completion(3L));
+        service.recordCompletionUndone(medication, completion(3L));
+
+        assertThat(player.getXp()).isZero();
+
+        assertThat(events)
+                .extracting(XpEvent::getSourceType)
+                .containsExactly(
+                        XpSourceType.QUEST_COMPLETED,
+                        XpSourceType.COMPLETION_UNDONE
+                );
+    }
+
+
     private Quest quest(String title, int xp) {
 
         Quest quest = new Quest();

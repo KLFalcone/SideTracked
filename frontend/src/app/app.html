@@ -269,6 +269,14 @@
               {{ quest.repeatEveryHours ? 'DONE' : 'COMPLETE' }}
             </button>
 
+            @if (quest.repeatEveryHours && quest.lastCompletedAt) {
+              <button
+                class="secondary-button"
+                (click)="undoLastCompletion(quest)">
+                UNDO LAST
+              </button>
+            }
+
             <button
               class="danger-button"
               (click)="deleteQuest(quest)">

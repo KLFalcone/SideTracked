@@ -103,12 +103,36 @@ public class PlayerService {
         return player;
     }
 
+    @Transactional
+    public Player recordQuestDeleted(
+            Quest quest,
+            QuestCompletion completion) {
+
+        return reverseCompletion(
+                XpSourceType.QUEST_DELETED,
+                quest,
+                completion
+        );
+    }
+
+    @Transactional
+    public Player recordCompletionUndone(
+            Quest quest,
+            QuestCompletion completion) {
+
+        return reverseCompletion(
+                XpSourceType.COMPLETION_UNDONE,
+                quest,
+                completion
+        );
+    }
+
     /*
      * Takes back the XP a completion earned. A completion that
      * earned nothing (an early repeat) is left as it is.
      */
-    @Transactional
-    public Player recordQuestDeleted(
+    private Player reverseCompletion(
+            XpSourceType reason,
             Quest quest,
             QuestCompletion completion) {
 
@@ -124,7 +148,7 @@ public class PlayerService {
         }
 
         Player player = record(
-                XpSourceType.QUEST_DELETED,
+                reason,
                 completion.getId(),
                 -quest.getXp(),
                 quest.getTitle()

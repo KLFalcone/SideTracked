@@ -815,13 +815,29 @@ export class App {
 
 
     /*
-     * The backend logs an early repeat without XP;
-     * say so instead of leaving the user wondering.
+     * An early repeat is easy to tap by mistake (and for
+     * medication, logging a dose twice matters), so confirm it.
+     * The backend logs it without XP.
      */
     if (
       quest.repeatEveryHours &&
+      quest.lastCompletedAt &&
       this.repeatStatus(quest).state === 'early'
     ) {
+
+      const since =
+        this.formatHours(
+          (this.now() - new Date(quest.lastCompletedAt).getTime())
+          / 3_600_000
+        );
+
+      if (
+        !window.confirm(
+          `It's only been ${since} since "${quest.title}" was last done. Log another one anyway?\n\n(Done early, it won't earn XP.)`
+        )
+      ) {
+        return;
+      }
 
       this.questNotice.set(
         `"${quest.title}" logged early, so no XP this time.`
@@ -860,6 +876,82 @@ export class App {
 
           console.error(
             'Failed to complete quest.',
+            error
+          );
+        }
+
+      });
+  }
+
+
+  // =========================
+  // UNDO LAST DONE
+  // =========================
+
+  /*
+   * Removes the most recent DONE of a repeating quest
+   * (and any XP it earned), e.g. after a mis-tap.
+   */
+  undoLastCompletion(
+    quest: Quest
+  ): void {
+
+    if (
+      !quest.id ||
+      !quest.lastCompletedAt
+    ) {
+      return;
+    }
+
+    const since =
+      this.formatHours(
+        (this.now() - new Date(quest.lastCompletedAt).getTime())
+        / 3_600_000
+      );
+
+    if (
+      !window.confirm(
+        `Undo the DONE for "${quest.title}" from ${since} ago?`
+      )
+    ) {
+      return;
+    }
+
+    this.questNotice.set(null);
+
+
+    this.http
+      .delete<Quest>(
+        `${this.questApiUrl}/${quest.id}/completions/latest`
+      )
+      .subscribe({
+
+        next: savedQuest => {
+
+          this.quests.update(
+            quests => quests.map(
+              q =>
+                q.id === savedQuest.id
+                  ? savedQuest
+                  : q
+            )
+          );
+
+          this.questNotice.set(
+            `Undid the last DONE for "${quest.title}".`
+          );
+
+          /*
+           * Any XP it earned was taken back.
+           */
+          this.loadPlayer();
+
+        },
+
+        error: error => {
+
+          console.error(
+            'Failed to undo the last completion.',
             error
           );
         }
