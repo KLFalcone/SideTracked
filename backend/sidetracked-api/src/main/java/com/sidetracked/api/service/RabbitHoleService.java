@@ -3,6 +3,7 @@ package com.sidetracked.api.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
@@ -37,6 +38,7 @@ public class RabbitHoleService {
     private final PlayerService playerService;
     private final CurrentUserService currentUserService;
     private final WorldCatalog worldCatalog;
+    private final List<DiscoverySource> discoverySources;
     private final Random random = new Random();
 
     public RabbitHoleService(
@@ -44,13 +46,15 @@ public class RabbitHoleService {
             UserRabbitHoleRepository userRabbitHoleRepository,
             PlayerService playerService,
             CurrentUserService currentUserService,
-            WorldCatalog worldCatalog) {
+            WorldCatalog worldCatalog,
+            List<DiscoverySource> discoverySources) {
 
         this.topicRepository = topicRepository;
         this.userRabbitHoleRepository = userRabbitHoleRepository;
         this.playerService = playerService;
         this.currentUserService = currentUserService;
         this.worldCatalog = worldCatalog;
+        this.discoverySources = discoverySources;
     }
 
     /*
@@ -61,12 +65,15 @@ public class RabbitHoleService {
      * worldSlug is optional: null means "Surprise Me" (any World),
      * otherwise only topics belonging to that World are considered.
      *
-     * 1. A topic the user has never seen, if any remain.
-     * 2. Otherwise revisit one they skipped or saved,
+     * 1. A catalog topic the user has never seen, if any remain.
+     * 2. Otherwise a brand-new topic from a live source
+     *    (e.g. Wikipedia), added to the shared catalog.
+     * 3. Otherwise revisit one they skipped or saved,
      *    then one they are exploring, then anything.
      *
      * A revisit returns the user's existing Rabbit Hole;
-     * it never creates a second copy.
+     * it never creates a second copy. If live sources can't be
+     * reached, the curated catalog still works on its own.
      */
 
     @Transactional
@@ -92,16 +99,6 @@ public class RabbitHoleService {
                                         || topic.belongsTo(worldSlug)
                         )
                         .toList();
-
-        if (candidates.isEmpty()) {
-
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    worldSlug == null
-                            ? "No Rabbit Holes are available yet."
-                            : "No Rabbit Holes in this World yet."
-            );
-        }
 
         Map<Long, UserRabbitHole> seen =
                 userRabbitHoleRepository
@@ -131,12 +128,68 @@ public class RabbitHoleService {
             return toView(rabbitHole);
         }
 
+        Optional<Topic> live = discoverLive(worldSlug);
+
+        if (live.isPresent()) {
+
+            UserRabbitHole rabbitHole =
+                    userRabbitHoleRepository.save(
+                            new UserRabbitHole(userId, live.get())
+                    );
+
+            return toView(rabbitHole);
+        }
+
+        if (candidates.isEmpty()) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    worldSlug == null
+                            ? "No Rabbit Holes are available yet."
+                            : "No Rabbit Holes in this World yet."
+            );
+        }
+
         List<UserRabbitHole> seenInScope =
                 candidates.stream()
                         .map(topic -> seen.get(topic.getId()))
                         .toList();
 
         return toView(pickRevisit(seenInScope));
+    }
+
+
+    /*
+     * Asks each live source for a new topic and saves the first
+     * one found to the shared catalog. "Surprise Me" picks a
+     * random World for the source to dig in.
+     */
+    private Optional<Topic> discoverLive(String worldSlug) {
+
+        String world =
+                worldSlug != null
+                        ? worldSlug
+                        : pickRandom(worldCatalog.getWorlds()).slug();
+
+        for (DiscoverySource source : discoverySources) {
+
+            Optional<Topic> found =
+                    source.discover(
+                            world,
+                            externalId -> topicRepository
+                                    .findBySourceProviderAndExternalId(
+                                            source.provider(),
+                                            externalId
+                                    )
+                                    .isPresent()
+                    );
+
+            if (found.isPresent()) {
+                return Optional.of(topicRepository.save(found.get()));
+            }
+        }
+
+        return Optional.empty();
     }
 
 

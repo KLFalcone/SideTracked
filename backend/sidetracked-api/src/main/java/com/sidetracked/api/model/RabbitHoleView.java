@@ -13,6 +13,7 @@ import java.util.function.Function;
  */
 public record RabbitHoleView(
         Long id,
+        String sourceProvider,
         String world,
         List<String> relatedWorlds,
         String title,
@@ -36,6 +37,7 @@ public record RabbitHoleView(
 
         return new RabbitHoleView(
                 topic.getId(),
+                topic.getSourceProvider(),
                 worldName.apply(topic.getWorld()),
                 topic.getRelatedWorlds()
                         .stream()

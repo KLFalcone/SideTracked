@@ -287,8 +287,8 @@
           @for (world of worlds(); track world.slug) {
             <option
               [value]="world.slug"
-              [disabled]="world.topicCount === 0">
-              {{ world.name }}{{ world.topicCount === 0 ? ' // coming soon' : ' (' + world.topicCount + ')' }}
+              [disabled]="world.topicCount === 0 && !world.liveDiscovery">
+              {{ world.name }}{{ world.liveDiscovery ? ' // live' : (world.topicCount === 0 ? ' // coming soon' : ' (' + world.topicCount + ')') }}
             </option>
           }
 
@@ -386,6 +386,34 @@
         <p class="rabbit-hook">
           {{ currentRabbitHole.hook }}
         </p>
+
+        <!-- Wikipedia text is CC BY-SA 4.0 and must be credited. -->
+        @if (currentRabbitHole.sourceProvider === 'WIKIPEDIA') {
+
+          <p class="source-credit">
+            Summary from
+            <a
+              [href]="currentRabbitHole.sources[0]?.url"
+              target="_blank"
+              rel="noopener noreferrer">Wikipedia</a>,
+            licensed
+            <a
+              href="https://creativecommons.org/licenses/by-sa/4.0/"
+              target="_blank"
+              rel="noopener noreferrer">CC BY-SA 4.0</a>.
+          </p>
+
+        }
+
+        @if (currentRabbitHole.world === 'Roads Less Traveled') {
+
+          <p class="safety-note">
+            Explore legally and safely: public places only, respect
+            private property, never enter unsafe structures, and leave
+            things as you found them.
+          </p>
+
+        }
 
 
         <div class="rabbit-divider"></div>

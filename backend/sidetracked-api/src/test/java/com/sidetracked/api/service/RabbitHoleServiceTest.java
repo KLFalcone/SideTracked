@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,12 @@ class RabbitHoleServiceTest {
     private final List<Topic> topics = new ArrayList<>();
     private final List<UserRabbitHole> seen = new ArrayList<>();
 
+    /*
+     * Live sources for a test to fill in; empty by default,
+     * so most tests use only the catalog.
+     */
+    private final List<DiscoverySource> liveSources = new ArrayList<>();
+
     @BeforeEach
     void setUp() {
 
@@ -63,13 +70,59 @@ class RabbitHoleServiceTest {
         when(userRabbitHoleRepository.save(any(UserRabbitHole.class)))
                 .thenAnswer(call -> call.getArgument(0));
 
+        when(topicRepository.save(any(Topic.class)))
+                .thenAnswer(call -> call.getArgument(0));
+
         service = new RabbitHoleService(
                 topicRepository,
                 userRabbitHoleRepository,
                 playerService,
                 currentUserService,
-                new WorldCatalog()
+                new WorldCatalog(),
+                liveSources
         );
+    }
+
+    @Test
+    void aLiveFindIsUsedOnceTheCatalogIsExhausted() {
+
+        Topic seenTopic = topic(1L, "THE GAME OF LIFE");
+        seen.add(card(seenTopic, RabbitHoleStatus.COMPLETED));
+
+        Topic liveTopic = liveTopic(50L, "Lincolnshire Poacher");
+        liveSources.add(fakeSource(Optional.of(liveTopic)));
+
+        RabbitHoleView view = service.discoverRabbitHole(null);
+
+        assertThat(view.id()).isEqualTo(50L);
+        assertThat(view.sourceProvider()).isEqualTo("WIKIPEDIA");
+
+        verify(topicRepository).save(liveTopic);
+        verify(userRabbitHoleRepository).save(any(UserRabbitHole.class));
+    }
+
+    @Test
+    void aWorldWithNoCatalogTopicsCanBeFilledLive() {
+
+        Topic liveTopic = liveTopic(60L, "Theriac");
+        liveSources.add(fakeSource(Optional.of(liveTopic)));
+
+        assertThat(service.discoverRabbitHole("medicine").id())
+                .isEqualTo(60L);
+    }
+
+    @Test
+    void ifLiveSourcesFindNothingItFallsBackToARevisit() {
+
+        Topic seenTopic = topic(1L, "THE GAME OF LIFE");
+        seen.add(card(seenTopic, RabbitHoleStatus.SAVED));
+
+        liveSources.add(fakeSource(Optional.empty()));
+
+        assertThat(service.discoverRabbitHole(null).id())
+                .isEqualTo(1L);
+
+        verify(topicRepository, never()).save(any(Topic.class));
     }
 
     @Test
@@ -261,6 +314,44 @@ class RabbitHoleServiceTest {
         topics.add(topic);
 
         return topic;
+    }
+
+    private Topic liveTopic(Long id, String title) {
+
+        Topic topic = new Topic();
+
+        ReflectionTestUtils.setField(topic, "id", id);
+
+        topic.setTitle(title);
+        topic.setSourceProvider("WIKIPEDIA");
+        topic.setExternalId(String.valueOf(id));
+        topic.setWorld("medicine");
+
+        return topic;
+    }
+
+    private DiscoverySource fakeSource(Optional<Topic> result) {
+
+        return new DiscoverySource() {
+
+            @Override
+            public Optional<Topic> discover(
+                    String worldSlug,
+                    Predicate<String> alreadyInCatalog) {
+
+                return result;
+            }
+
+            @Override
+            public String provider() {
+                return "WIKIPEDIA";
+            }
+
+            @Override
+            public boolean supports(String worldSlug) {
+                return true;
+            }
+        };
     }
 
     private UserRabbitHole card(

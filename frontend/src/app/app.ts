@@ -34,11 +34,13 @@ interface World {
   name: string;
   tagline: string;
   topicCount: number;
+  liveDiscovery: boolean;
 }
 
 
 interface RabbitHole {
   id: number;
+  sourceProvider: string;
   world: string;
   relatedWorlds: string[];
   title: string;

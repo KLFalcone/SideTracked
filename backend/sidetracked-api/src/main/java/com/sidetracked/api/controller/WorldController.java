@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sidetracked.api.model.Topic;
 import com.sidetracked.api.repository.TopicRepository;
+import com.sidetracked.api.service.DiscoverySource;
 import com.sidetracked.api.service.WorldCatalog;
 
 @RestController
@@ -18,19 +19,21 @@ public class WorldController {
 
     private final WorldCatalog worldCatalog;
     private final TopicRepository topicRepository;
+    private final List<DiscoverySource> discoverySources;
 
     public WorldController(
             WorldCatalog worldCatalog,
-            TopicRepository topicRepository) {
+            TopicRepository topicRepository,
+            List<DiscoverySource> discoverySources) {
 
         this.worldCatalog = worldCatalog;
         this.topicRepository = topicRepository;
+        this.discoverySources = discoverySources;
     }
 
     /*
-     * Every World, with how many topics can currently be
-     * discovered from it (so empty Worlds can show as
-     * "coming soon").
+     * Every World, with how many topics the catalog already holds
+     * for it and whether a live source can find more.
      */
     @GetMapping
     public List<WorldSummary> getWorlds() {
@@ -47,7 +50,11 @@ public class WorldController {
                                 .filter(topic ->
                                         topic.belongsTo(world.slug())
                                 )
-                                .count()
+                                .count(),
+                        discoverySources.stream()
+                                .anyMatch(source ->
+                                        source.supports(world.slug())
+                                )
                 ))
                 .toList();
     }
@@ -56,6 +63,7 @@ public class WorldController {
             String slug,
             String name,
             String tagline,
-            long topicCount) {
+            long topicCount,
+            boolean liveDiscovery) {
     }
 }
