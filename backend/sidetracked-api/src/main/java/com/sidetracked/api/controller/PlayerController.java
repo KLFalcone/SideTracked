@@ -2,8 +2,6 @@ package com.sidetracked.api.controller;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,12 +24,5 @@ public class PlayerController {
     @GetMapping
     public Player getPlayer() {
         return playerService.getPlayer();
-    }
-
-    @PostMapping("/encounters/{xp}/complete")
-    public Player completeEncounter(
-            @PathVariable int xp) {
-
-        return playerService.awardEncounterXp(xp);
     }
 }
