@@ -306,14 +306,14 @@ public class RabbitHoleService {
 
                         List.of(
                                 source(
-                                        "SETI Institute",
-                                        "https://www.seti.org/",
-                                        "REFERENCE"
+                                        "Big Ear Radio Observatory: The Wow! Signal",
+                                        "https://www.bigear.org/wow.htm",
+                                        "PRIMARY SOURCE"
                                 ),
                                 source(
-                                        "Big Ear Radio Observatory",
-                                        "https://www.bigear.org/",
-                                        "ARCHIVE"
+                                        "Wikipedia: Wow! signal",
+                                        "https://en.wikipedia.org/wiki/Wow!_signal",
+                                        "REFERENCE"
                                 )
                         )
                 )
@@ -392,13 +392,13 @@ public class RabbitHoleService {
 
                         List.of(
                                 source(
-                                        "IAEA",
-                                        "https://www.iaea.org/",
-                                        "REFERENCE"
+                                        "Scientific American: The Workings of an Ancient Nuclear Reactor",
+                                        "https://www.scientificamerican.com/article/ancient-nuclear-reactor/",
+                                        "EXPLANATION"
                                 ),
                                 source(
-                                        "U.S. Department of Energy",
-                                        "https://www.energy.gov/",
+                                        "Wikipedia: Natural nuclear fission reactor",
+                                        "https://en.wikipedia.org/wiki/Natural_nuclear_fission_reactor",
                                         "REFERENCE"
                                 )
                         )
@@ -472,9 +472,14 @@ public class RabbitHoleService {
 
                         List.of(
                                 source(
-                                        "The Conet Project",
-                                        "https://www.irdial.com/conet.htm",
+                                        "The Conet Project recordings (Internet Archive)",
+                                        "https://archive.org/details/ird059",
                                         "ARCHIVE"
+                                ),
+                                source(
+                                        "Wikipedia: Numbers station",
+                                        "https://en.wikipedia.org/wiki/Numbers_station",
+                                        "REFERENCE"
                                 )
                         )
                 )
@@ -623,6 +628,11 @@ public class RabbitHoleService {
 
                         List.of(
                                 source(
+                                        "Wikipedia: Dead Internet theory",
+                                        "https://en.wikipedia.org/wiki/Dead_Internet_theory",
+                                        "REFERENCE"
+                                ),
+                                source(
                                         "Imperva Bad Bot Report",
                                         "https://www.imperva.com/resources/resource-library/reports/bad-bot-report/",
                                         "RESEARCH"
@@ -662,8 +672,13 @@ public class RabbitHoleService {
 
                         List.of(
                                 source(
-                                        "U.S. Forest Service",
-                                        "https://www.fs.usda.gov/",
+                                        "Friends of Pando",
+                                        "https://www.friendsofpando.org/",
+                                        "PROJECT"
+                                ),
+                                source(
+                                        "Wikipedia: Pando (tree)",
+                                        "https://en.wikipedia.org/wiki/Pando_(tree)",
                                         "REFERENCE"
                                 )
                         )
@@ -700,13 +715,13 @@ public class RabbitHoleService {
 
                         List.of(
                                 source(
-                                        "GPS.gov",
-                                        "https://www.gps.gov/",
-                                        "REFERENCE"
+                                        "Ohio State Astronomy: GPS and Relativity",
+                                        "https://www.astronomy.ohio-state.edu/pogge.1/Ast162/Unit5/gps.html",
+                                        "EXPLANATION"
                                 ),
                                 source(
-                                        "NIST",
-                                        "https://www.nist.gov/",
+                                        "Wikipedia: Error analysis for GPS",
+                                        "https://en.wikipedia.org/wiki/Error_analysis_for_the_Global_Positioning_System",
                                         "REFERENCE"
                                 )
                         )
