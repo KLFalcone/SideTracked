@@ -8,7 +8,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.sidetracked.api.model.Quest;
 import com.sidetracked.api.model.QuestCompletion;
+import com.sidetracked.api.model.Times;
 import com.sidetracked.api.repository.QuestCompletionRepository;
 import com.sidetracked.api.repository.QuestRepository;
 
@@ -131,7 +131,7 @@ class QuestServiceTest {
         verify(completionRepository).delete(mistake);
 
         assertThat(medication.getLastCompletedAt())
-                .isEqualTo(previous.getCompletedAt());
+                .isEqualTo(Times.toInstant(previous.getCompletedAt()));
     }
 
     @Test
@@ -218,7 +218,7 @@ class QuestServiceTest {
         ReflectionTestUtils.setField(
                 completion,
                 "completedAt",
-                LocalDateTime.now().minusHours(hours)
+                Times.nowUtc().minusHours(hours)
         );
 
         return completion;

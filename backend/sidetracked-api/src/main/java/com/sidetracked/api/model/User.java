@@ -41,7 +41,7 @@ public class User {
     public void onCreate() {
 
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = Times.nowUtc();
         }
     }
 

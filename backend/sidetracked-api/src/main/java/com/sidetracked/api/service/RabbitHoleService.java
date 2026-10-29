@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.sidetracked.api.model.RabbitHoleStatus;
 import com.sidetracked.api.model.RabbitHoleView;
+import com.sidetracked.api.model.Times;
 import com.sidetracked.api.model.Topic;
 import com.sidetracked.api.model.UserRabbitHole;
 import com.sidetracked.api.repository.TopicRepository;
@@ -313,7 +314,7 @@ public class RabbitHoleService {
         );
 
         rabbitHole.setCompletedAt(
-                LocalDateTime.now()
+                Times.nowUtc()
         );
 
         /*

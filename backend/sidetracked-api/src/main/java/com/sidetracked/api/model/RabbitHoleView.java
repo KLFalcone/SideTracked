@@ -1,6 +1,6 @@
 package com.sidetracked.api.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.function.Function;
 
@@ -23,7 +23,7 @@ public record RabbitHoleView(
         List<String> tags,
         List<TopicSource> sources,
         RabbitHoleStatus status,
-        LocalDateTime discoveredAt,
+        Instant discoveredAt,
         String reflection) {
 
     /*
@@ -50,7 +50,7 @@ public record RabbitHoleView(
                 List.copyOf(topic.getTags()),
                 List.copyOf(topic.getSources()),
                 rabbitHole.getStatus(),
-                rabbitHole.getDiscoveredAt(),
+                Times.toInstant(rabbitHole.getDiscoveredAt()),
                 rabbitHole.getReflection()
         );
     }

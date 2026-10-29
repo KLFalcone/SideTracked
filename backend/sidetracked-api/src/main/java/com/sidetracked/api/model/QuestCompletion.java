@@ -39,7 +39,7 @@ public class QuestCompletion {
     public QuestCompletion(Long questId) {
 
         this.questId = questId;
-        this.completedAt = LocalDateTime.now();
+        this.completedAt = Times.nowUtc();
         this.backfilled = false;
     }
 

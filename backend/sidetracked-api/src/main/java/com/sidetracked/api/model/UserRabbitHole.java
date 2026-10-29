@@ -65,7 +65,7 @@ public class UserRabbitHole {
         this.userId = userId;
         this.topic = topic;
         this.status = RabbitHoleStatus.DISCOVERED;
-        this.discoveredAt = LocalDateTime.now();
+        this.discoveredAt = Times.nowUtc();
     }
 
     public Long getId() {
