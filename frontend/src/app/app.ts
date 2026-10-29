@@ -18,7 +18,7 @@ interface Player {
   id: number;
   xp: number;
   questsCompleted: number;
-  encountersCompleted: number;
+  rabbitHolesCompleted: number;
 }
 
 
@@ -82,7 +82,7 @@ export class App {
     id: 0,
     xp: 0,
     questsCompleted: 0,
-    encountersCompleted: 0
+    rabbitHolesCompleted: 0
   });
 
 

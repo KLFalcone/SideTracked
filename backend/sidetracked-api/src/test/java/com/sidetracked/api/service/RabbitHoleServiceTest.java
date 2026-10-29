@@ -3,7 +3,6 @@ package com.sidetracked.api.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -142,7 +141,7 @@ class RabbitHoleServiceTest {
         assertThat(card.getReflection()).isEqualTo("Wow indeed");
         assertThat(card.getCompletedAt()).isNotNull();
 
-        verify(playerService, times(1)).awardEncounterXp(30);
+        verify(playerService, times(1)).recordRabbitHoleCompleted(card);
     }
 
     @Test
@@ -163,7 +162,7 @@ class RabbitHoleServiceTest {
         assertThat(card.getStatus())
                 .isEqualTo(RabbitHoleStatus.COMPLETED);
 
-        verify(playerService, never()).awardEncounterXp(anyInt());
+        verify(playerService, never()).recordRabbitHoleCompleted(any());
     }
 
     @Test
