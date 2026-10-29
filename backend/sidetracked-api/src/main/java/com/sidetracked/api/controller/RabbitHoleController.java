@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sidetracked.api.model.RabbitHole;
+import com.sidetracked.api.model.RabbitHoleView;
 import com.sidetracked.api.service.RabbitHoleService;
 
 @RestController
@@ -29,32 +29,32 @@ public class RabbitHoleController {
     }
 
     @PostMapping("/discover")
-    public RabbitHole discoverRabbitHole() {
+    public RabbitHoleView discoverRabbitHole() {
         return rabbitHoleService.discoverRabbitHole();
     }
 
     @GetMapping
-    public List<RabbitHole> getLibrary() {
+    public List<RabbitHoleView> getLibrary() {
         return rabbitHoleService.getLibrary();
     }
 
     @PutMapping("/{id}/save")
-    public RabbitHole saveForLater(
-            @PathVariable Long id) {
+    public RabbitHoleView saveForLater(
+            @PathVariable("id") Long topicId) {
 
-        return rabbitHoleService.saveForLater(id);
+        return rabbitHoleService.saveForLater(topicId);
     }
 
     @PutMapping("/{id}/explore")
-    public RabbitHole startExploring(
-            @PathVariable Long id) {
+    public RabbitHoleView startExploring(
+            @PathVariable("id") Long topicId) {
 
-        return rabbitHoleService.startExploring(id);
+        return rabbitHoleService.startExploring(topicId);
     }
 
     @PutMapping("/{id}/complete")
-    public RabbitHole completeRabbitHole(
-            @PathVariable Long id,
+    public RabbitHoleView completeRabbitHole(
+            @PathVariable("id") Long topicId,
             @RequestBody(required = false)
             CompleteRabbitHoleRequest request) {
 
@@ -64,7 +64,7 @@ public class RabbitHoleController {
                         : request.reflection();
 
         return rabbitHoleService.completeRabbitHole(
-                id,
+                topicId,
                 reflection
         );
     }
@@ -75,8 +75,8 @@ public class RabbitHoleController {
 
     @DeleteMapping("/{id}")
     public void deleteRabbitHole(
-            @PathVariable Long id) {
+            @PathVariable("id") Long topicId) {
 
-        rabbitHoleService.deleteRabbitHole(id);
+        rabbitHoleService.deleteRabbitHole(topicId);
     }
 }
