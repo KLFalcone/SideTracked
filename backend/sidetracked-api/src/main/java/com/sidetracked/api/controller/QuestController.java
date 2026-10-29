@@ -58,6 +58,16 @@ public class QuestController {
         return questService.completeQuest(id);
     }
 
+    /*
+     * Undo the most recent DONE of a repeating quest.
+     */
+    @DeleteMapping("/{id}/completions/latest")
+    public Quest undoLastCompletion(
+            @PathVariable Long id) {
+
+        return questService.undoLastCompletion(id);
+    }
+
     @DeleteMapping("/{id}")
     public void deleteQuest(
             @PathVariable Long id) {

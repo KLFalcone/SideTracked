@@ -113,6 +113,39 @@ class QuestServiceTest {
     }
 
     @Test
+    void undoRemovesTheLastCompletionAndTakesBackItsXp() {
+
+        Quest medication = medicationQuest();
+
+        QuestCompletion previous = completionHoursAgo(9);
+        QuestCompletion mistake = completionHoursAgo(0);
+
+        when(completionRepository
+                .findTopByQuestIdOrderByCompletedAtDesc(QUEST_ID))
+                .thenReturn(Optional.of(mistake))
+                .thenReturn(Optional.of(previous));
+
+        service.undoLastCompletion(QUEST_ID);
+
+        verify(playerService).recordCompletionUndone(medication, mistake);
+        verify(completionRepository).delete(mistake);
+
+        assertThat(medication.getLastCompletedAt())
+                .isEqualTo(previous.getCompletedAt());
+    }
+
+    @Test
+    void undoWithNothingToUndoIsNotFound() {
+
+        medicationQuest();
+        noPreviousDose();
+
+        assertThatThrownBy(() -> service.undoLastCompletion(QUEST_ID))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("404");
+    }
+
+    @Test
     void aScheduleMustBeCompleteAndInOrder() {
 
         Quest quest = new Quest();
@@ -178,15 +211,22 @@ class QuestServiceTest {
                 .thenReturn(Optional.empty());
     }
 
-    private void lastDoseHoursAgo(int hours) {
+    private QuestCompletion completionHoursAgo(int hours) {
 
-        QuestCompletion last = new QuestCompletion(QUEST_ID);
+        QuestCompletion completion = new QuestCompletion(QUEST_ID);
 
         ReflectionTestUtils.setField(
-                last,
+                completion,
                 "completedAt",
                 LocalDateTime.now().minusHours(hours)
         );
+
+        return completion;
+    }
+
+    private void lastDoseHoursAgo(int hours) {
+
+        QuestCompletion last = completionHoursAgo(hours);
 
         when(completionRepository
                 .findTopByQuestIdOrderByCompletedAtDesc(QUEST_ID))
