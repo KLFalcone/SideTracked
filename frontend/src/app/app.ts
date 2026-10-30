@@ -776,7 +776,8 @@ export class App {
             : error.status === 409 ? 'An account with that email already exists. Try signing in.'
             : error.status === 400 ? 'Use a valid email and a password of 8 to 72 characters.'
             : error.status === 403 ? 'Your session needed refreshing. Please try again.'
-            : 'Couldn\'t reach the server. Is Spring Boot running?'
+            : error.status === 429 ? 'Too many attempts. Please wait a while and try again.'
+            : 'Couldn\'t reach the server. It may be waking up, so try again in a minute.'
           );
 
           if (error.status === 403) {

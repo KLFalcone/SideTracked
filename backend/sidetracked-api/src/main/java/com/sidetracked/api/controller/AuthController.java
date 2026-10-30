@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.sidetracked.api.model.User;
 import com.sidetracked.api.security.SessionLogin;
+import com.sidetracked.api.security.SignInRateLimiter;
 import com.sidetracked.api.service.AuthService;
 import com.sidetracked.api.service.CurrentUserService;
 
@@ -30,17 +32,20 @@ public class AuthController {
     private final SessionLogin sessionLogin;
     private final CurrentUserService currentUserService;
     private final ObjectProvider<ClientRegistrationRepository> googleClients;
+    private final SignInRateLimiter rateLimiter;
 
     public AuthController(
             AuthService authService,
             SessionLogin sessionLogin,
             CurrentUserService currentUserService,
-            ObjectProvider<ClientRegistrationRepository> googleClients) {
+            ObjectProvider<ClientRegistrationRepository> googleClients,
+            SignInRateLimiter rateLimiter) {
 
         this.authService = authService;
         this.sessionLogin = sessionLogin;
         this.currentUserService = currentUserService;
         this.googleClients = googleClients;
+        this.rateLimiter = rateLimiter;
     }
 
     @PostMapping("/register")
@@ -48,6 +53,8 @@ public class AuthController {
             @RequestBody RegisterRequest body,
             HttpServletRequest request,
             HttpServletResponse response) {
+
+        rateLimiter.checkAndRecordRegistration();
 
         User user = authService.register(
                 body.email(),
@@ -66,10 +73,21 @@ public class AuthController {
             HttpServletRequest request,
             HttpServletResponse response) {
 
-        User user = authService.authenticate(
-                body.email(),
-                body.password()
-        );
+        rateLimiter.checkSignIn(body.email());
+
+        User user;
+
+        try {
+            user = authService.authenticate(
+                    body.email(),
+                    body.password()
+            );
+        } catch (ResponseStatusException wrongEmailOrPassword) {
+            rateLimiter.recordFailedSignIn(body.email());
+            throw wrongEmailOrPassword;
+        }
+
+        rateLimiter.recordSuccessfulSignIn(body.email());
 
         sessionLogin.signIn(user.getId(), request, response);
 
