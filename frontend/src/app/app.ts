@@ -333,6 +333,18 @@ export class App {
 
   questNotice = signal<string | null>(null);
 
+  /*
+   * Repeating quests never complete, so they always count
+   * as active.
+   */
+  get activeQuestCount(): number {
+    return this.quests().filter(quest => !quest.completed).length;
+  }
+
+  get completedQuestListCount(): number {
+    return this.quests().filter(quest => quest.completed).length;
+  }
+
 
   // =========================
   // REPEATING QUESTS
