@@ -1,7 +1,10 @@
 package com.sidetracked.api.service;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.sidetracked.api.model.User;
 import com.sidetracked.api.repository.UserRepository;
@@ -12,15 +15,12 @@ import com.sidetracked.api.repository.UserRepository;
  * ============================================================
  *
  * Every service asks this class for the current user and only
- * reads or changes that user's data. The user is never taken
- * from the request body or URL.
+ * reads or changes that user's data. The user always comes from
+ * the signed-in session, never from the request body or URL.
  *
- * TEMPORARY: there is no login yet, so the current user is
- * always the local development user. When authentication is
- * added, only this class changes: it will return the signed-in
- * user instead.
- *
- * SideTracked must not be deployed publicly until that happens.
+ * After signing in (password or Google), the session holds an
+ * authentication whose principal is the user's id; see
+ * SessionLogin.
  */
 @Service
 public class CurrentUserService {
@@ -33,19 +33,30 @@ public class CurrentUserService {
         this.userRepository = userRepository;
     }
 
-    @Transactional
+    public Long getCurrentUserId() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null
+                && authentication.getPrincipal() instanceof Long userId) {
+
+            return userId;
+        }
+
+        throw new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED,
+                "Please sign in."
+        );
+    }
+
     public User getCurrentUser() {
 
         return userRepository
-                .findFirstByOrderByIdAsc()
-                .orElseGet(() ->
-                        userRepository.save(
-                                new User("Local Developer")
-                        )
-                );
-    }
-
-    public Long getCurrentUserId() {
-        return getCurrentUser().getId();
+                .findById(getCurrentUserId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "Please sign in."
+                ));
     }
 }

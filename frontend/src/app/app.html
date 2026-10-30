@@ -10,7 +10,7 @@
 
       <button
         class="secondary-button small-button"
-        (click)="loadAllPersistentState()">
+        (click)="retryConnection()">
         RETRY
       </button>
 
@@ -19,10 +19,111 @@
   }
 
   <!-- =========================
+       SIGN IN / SIGN UP
+       ========================= -->
+
+  @if (account() === null) {
+
+    <section class="auth-card">
+
+      <p class="eyebrow">QUEST LOG // SIGN IN</p>
+
+      <h1>SideTracked</h1>
+
+      <p class="tagline">
+        Turn getting sidetracked into progress.
+      </p>
+
+      <div class="discovery-modes">
+
+        <button
+          class="mode-button"
+          [class.active]="authMode === 'signin'"
+          (click)="authMode = 'signin'; authError.set(null)">
+          SIGN IN
+        </button>
+
+        <button
+          class="mode-button"
+          [class.active]="authMode === 'signup'"
+          (click)="authMode = 'signup'; authError.set(null)">
+          CREATE ACCOUNT
+        </button>
+
+      </div>
+
+      <form class="auth-form" (submit)="submitAuth(); $event.preventDefault()">
+
+        @if (authMode === 'signup') {
+          <input
+            type="text"
+            name="displayName"
+            placeholder="Your name"
+            maxlength="100"
+            autocomplete="nickname"
+            [(ngModel)]="authDisplayName">
+        }
+
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          autocomplete="email"
+          required
+          [(ngModel)]="authEmail">
+
+        <input
+          type="password"
+          name="password"
+          placeholder="Password (8+ characters)"
+          minlength="8"
+          maxlength="72"
+          [attr.autocomplete]="authMode === 'signup' ? 'new-password' : 'current-password'"
+          required
+          [(ngModel)]="authPassword">
+
+        <button type="submit" [disabled]="authBusy()">
+          {{ authMode === 'signup' ? 'CREATE ACCOUNT' : 'SIGN IN' }}
+        </button>
+
+      </form>
+
+      @if (authError(); as message) {
+        <p class="form-error" role="alert">
+          {{ message }}
+        </p>
+      }
+
+      @if (googleSignInEnabled()) {
+
+        <p class="auth-divider">or</p>
+
+        <button
+          class="secondary-button google-button"
+          (click)="signInWithGoogle()">
+          SIGN IN WITH GOOGLE
+        </button>
+
+      }
+
+    </section>
+
+  } @else if (account(); as signedIn) {
+
+  <!-- =========================
        HEADER / PLAYER
        ========================= -->
 
   <header class="app-header">
+
+    <div class="account-bar">
+      <span>Signed in as {{ signedIn.displayName }}</span>
+      <button
+        class="text-button"
+        (click)="signOut()">
+        SIGN OUT
+      </button>
+    </div>
 
     <p class="eyebrow">QUEST LOG // ONLINE</p>
 
@@ -832,6 +933,16 @@
 
       </div>
 
+    </section>
+
+  }
+
+  } @else {
+
+    <section class="auth-card">
+      <p class="eyebrow">QUEST LOG // CONNECTING</p>
+      <h1>SideTracked</h1>
+      <p class="tagline">Checking whether you're signed in...</p>
     </section>
 
   }

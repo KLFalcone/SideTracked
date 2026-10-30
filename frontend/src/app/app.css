@@ -234,6 +234,49 @@ select:focus {
 }
 
 /* =========================
+   ACCOUNT
+   ========================= */
+
+.auth-card {
+  max-width: 420px;
+
+  margin: 40px auto;
+}
+
+.auth-form {
+  display: grid;
+  gap: 10px;
+
+  margin-top: 8px;
+}
+
+.auth-divider {
+  margin: 16px 0 10px;
+
+  color: var(--dim);
+
+  font-size: 12px;
+  text-align: center;
+}
+
+.google-button {
+  width: 100%;
+}
+
+.account-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+
+  color: var(--muted);
+
+  font-size: 12px;
+}
+
+
+/* =========================
    REPEATING QUESTS
    ========================= */
 
