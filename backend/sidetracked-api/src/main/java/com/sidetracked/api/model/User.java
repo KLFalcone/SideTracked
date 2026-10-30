@@ -12,11 +12,9 @@ import jakarta.persistence.Table;
 /*
  * A person using SideTracked.
  *
- * Everything personal (player stats, quests, and later
- * Rabbit Hole history) points back to a user.
- *
- * Login details will be added here when authentication
- * is built.
+ * Everything personal (player stats, quests, Rabbit Hole history)
+ * points back to a user. A user signs in with an email + password,
+ * with Google, or both. This entity is never sent to the browser.
  */
 @Entity
 @Table(name = "users")
@@ -29,6 +27,15 @@ public class User {
     private String displayName;
 
     private LocalDateTime createdAt;
+
+    /* Unique, stored lowercase. Null until a password is set. */
+    private String email;
+
+    /* BCrypt hash; the password itself is never stored. */
+    private String passwordHash;
+
+    /* Google's permanent id for this person. */
+    private String googleSubject;
 
     public User() {
     }
@@ -45,6 +52,14 @@ public class User {
         }
     }
 
+    /*
+     * True for a user with no way to sign in yet, like the local
+     * user that owned data before accounts existed.
+     */
+    public boolean hasNoLogin() {
+        return email == null && googleSubject == null;
+    }
+
     public Long getId() {
         return id;
     }
@@ -59,5 +74,29 @@ public class User {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public String getGoogleSubject() {
+        return googleSubject;
+    }
+
+    public void setGoogleSubject(String googleSubject) {
+        this.googleSubject = googleSubject;
     }
 }
