@@ -2,19 +2,6 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
-import { SIGNED_OUT_EVENT } from './auth.interceptor';
-
-
-/*
- * The signed-in user, as the backend describes them.
- */
-interface Account {
-  displayName: string;
-  email: string | null;
-  hasPassword: boolean;
-  hasGoogle: boolean;
-}
-
 
 interface Quest {
   id?: number;
@@ -333,18 +320,6 @@ export class App {
 
   questNotice = signal<string | null>(null);
 
-  /*
-   * Repeating quests never complete, so they always count
-   * as active.
-   */
-  get activeQuestCount(): number {
-    return this.quests().filter(quest => !quest.completed).length;
-  }
-
-  get completedQuestListCount(): number {
-    return this.quests().filter(quest => quest.completed).length;
-  }
-
 
   // =========================
   // REPEATING QUESTS
@@ -635,7 +610,7 @@ export class App {
   constructor(
     private http: HttpClient
   ) {
-    this.startSession();
+    this.loadAllPersistentState();
 
     /*
      * Tick every 30 seconds so repeating-quest timelines
@@ -648,219 +623,9 @@ export class App {
 
     }, 30_000);
 
-    /*
-     * Any API call answered "not signed in" (e.g. an expired
-     * session) brings back the sign-in screen.
-     */
-    const onSignedOut = () => this.clearSignedInState();
-
-    window.addEventListener(SIGNED_OUT_EVENT, onSignedOut);
-
-    inject(DestroyRef).onDestroy(() => {
-      clearInterval(clock);
-      window.removeEventListener(SIGNED_OUT_EVENT, onSignedOut);
-    });
-  }
-
-
-  // =========================
-  // ACCOUNT
-  // =========================
-
-  /*
-   * undefined = still checking, null = signed out.
-   */
-  account = signal<Account | null | undefined>(undefined);
-
-  googleSignInEnabled = signal(false);
-
-  authMode: 'signin' | 'signup' = 'signin';
-
-  authEmail = '';
-  authPassword = '';
-  authDisplayName = '';
-
-  authError = signal<string | null>(null);
-
-  authBusy = signal(false);
-
-
-  /*
-   * On page load: get a CSRF cookie, see which sign-in options
-   * exist, then check whether this browser is already signed in.
-   */
-  private startSession(): void {
-
-    if (
-      new URLSearchParams(window.location.search)
-        .get('signin') === 'failed'
-    ) {
-      this.authError.set('Google sign-in didn\'t complete. Please try again.');
-    }
-
-    this.http
-      .get(`${this.apiBaseUrl}/auth/csrf`)
-      .subscribe({ error: () => {} });
-
-    this.http
-      .get<{ google: boolean }>(`${this.apiBaseUrl}/auth/providers`)
-      .subscribe({
-        next: providers =>
-          this.googleSignInEnabled.set(providers.google),
-        error: () => {}
-      });
-
-    this.http
-      .get<Account>(`${this.apiBaseUrl}/auth/me`)
-      .subscribe({
-
-        next: account => {
-
-          this.account.set(account);
-          this.loadAllPersistentState();
-        },
-
-        error: error => {
-
-          if (error.status === 401) {
-            this.account.set(null);
-          } else {
-            this.connectionError.set(true);
-          }
-        }
-
-      });
-  }
-
-
-  submitAuth(): void {
-
-    this.authError.set(null);
-    this.authBusy.set(true);
-
-    const signingUp = this.authMode === 'signup';
-
-    const body = signingUp
-      ? {
-          email: this.authEmail,
-          password: this.authPassword,
-          displayName: this.authDisplayName
-        }
-      : {
-          email: this.authEmail,
-          password: this.authPassword
-        };
-
-    this.http
-      .post<Account>(
-        `${this.apiBaseUrl}/auth/${signingUp ? 'register' : 'login'}`,
-        body
-      )
-      .subscribe({
-
-        next: account => {
-
-          this.authBusy.set(false);
-          this.authPassword = '';
-
-          this.account.set(account);
-          this.loadAllPersistentState();
-        },
-
-        error: error => {
-
-          this.authBusy.set(false);
-
-          this.authError.set(
-            error.status === 401 ? 'Email or password is incorrect.'
-            : error.status === 409 ? 'An account with that email already exists. Try signing in.'
-            : error.status === 400 ? 'Use a valid email and a password of 8 to 72 characters.'
-            : error.status === 403 ? 'Your session needed refreshing. Please try again.'
-            : error.status === 429 ? 'Too many attempts. Please wait a while and try again.'
-            : 'Couldn\'t reach the server. It may be waking up, so try again in a minute.'
-          );
-
-          if (error.status === 403) {
-            this.http
-              .get(`${this.apiBaseUrl}/auth/csrf`)
-              .subscribe({ error: () => {} });
-          }
-        }
-
-      });
-  }
-
-
-  /*
-   * The banner's Retry: re-check sign-in if we never got that far,
-   * otherwise reload the signed-in user's data.
-   */
-  retryConnection(): void {
-
-    this.connectionError.set(false);
-
-    if (this.account() === undefined) {
-      this.startSession();
-    } else {
-      this.loadAllPersistentState();
-    }
-  }
-
-
-  signInWithGoogle(): void {
-    window.location.href = '/oauth2/authorization/google';
-  }
-
-
-  signOut(): void {
-
-    this.http
-      .post(`${this.apiBaseUrl}/auth/logout`, {})
-      .subscribe({
-
-        next: () => this.clearSignedInState(),
-
-        error: () => this.clearSignedInState()
-
-      });
-  }
-
-
-  /*
-   * Forget everything personal on screen and show sign-in.
-   */
-  private clearSignedInState(): void {
-
-    this.account.set(null);
-
-    this.player.set({
-      id: 0,
-      xp: 0,
-      questsCompleted: 0,
-      rabbitHolesCompleted: 0
-    });
-
-    this.quests.set([]);
-    this.rabbitHoleLibrary.set([]);
-    this.currentRabbitHole.set(null);
-    this.questNotice.set(null);
-    this.discoveryMessage.set(null);
-
-    this.http
-      .get(`${this.apiBaseUrl}/auth/csrf`)
-      .subscribe({ error: () => {} });
-  }
-
-
-  /*
-   * "Not signed in" is handled by the sign-in screen; anything
-   * else means the server couldn't be reached.
-   */
-  private reportLoadError(error: { status: number }): void {
-
-    if (error.status !== 401) {
-      this.connectionError.set(true);
-    }
+    inject(DestroyRef).onDestroy(
+      () => clearInterval(clock)
+    );
   }
 
 
@@ -890,7 +655,7 @@ export class App {
 
         error: error => {
 
-          this.reportLoadError(error);
+          this.connectionError.set(true);
 
           console.error(
             'Failed to load Worlds.',
@@ -926,7 +691,7 @@ export class App {
 
         error: error => {
 
-          this.reportLoadError(error);
+          this.connectionError.set(true);
 
           console.error(
             'Failed to load player.',
@@ -964,7 +729,7 @@ export class App {
 
         error: error => {
 
-          this.reportLoadError(error);
+          this.connectionError.set(true);
 
           console.error(
             'Failed to load quests.',
@@ -1433,7 +1198,7 @@ export class App {
 
         error: error => {
 
-          this.reportLoadError(error);
+          this.connectionError.set(true);
 
           console.error(
             'Failed to load Rabbit Hole library.',

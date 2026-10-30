@@ -10,7 +10,7 @@
 
       <button
         class="secondary-button small-button"
-        (click)="retryConnection()">
+        (click)="loadAllPersistentState()">
         RETRY
       </button>
 
@@ -19,111 +19,10 @@
   }
 
   <!-- =========================
-       SIGN IN / SIGN UP
-       ========================= -->
-
-  @if (account() === null) {
-
-    <section class="auth-card">
-
-      <p class="eyebrow">QUEST LOG // SIGN IN</p>
-
-      <h1>SideTracked</h1>
-
-      <p class="tagline">
-        Turn getting sidetracked into progress.
-      </p>
-
-      <div class="discovery-modes">
-
-        <button
-          class="mode-button"
-          [class.active]="authMode === 'signin'"
-          (click)="authMode = 'signin'; authError.set(null)">
-          SIGN IN
-        </button>
-
-        <button
-          class="mode-button"
-          [class.active]="authMode === 'signup'"
-          (click)="authMode = 'signup'; authError.set(null)">
-          CREATE ACCOUNT
-        </button>
-
-      </div>
-
-      <form class="auth-form" (submit)="submitAuth(); $event.preventDefault()">
-
-        @if (authMode === 'signup') {
-          <input
-            type="text"
-            name="displayName"
-            placeholder="Your name"
-            maxlength="100"
-            autocomplete="nickname"
-            [(ngModel)]="authDisplayName">
-        }
-
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          autocomplete="email"
-          required
-          [(ngModel)]="authEmail">
-
-        <input
-          type="password"
-          name="password"
-          placeholder="Password (8+ characters)"
-          minlength="8"
-          maxlength="72"
-          [attr.autocomplete]="authMode === 'signup' ? 'new-password' : 'current-password'"
-          required
-          [(ngModel)]="authPassword">
-
-        <button type="submit" [disabled]="authBusy()">
-          {{ authMode === 'signup' ? 'CREATE ACCOUNT' : 'SIGN IN' }}
-        </button>
-
-      </form>
-
-      @if (authError(); as message) {
-        <p class="form-error" role="alert">
-          {{ message }}
-        </p>
-      }
-
-      @if (googleSignInEnabled()) {
-
-        <p class="auth-divider">or</p>
-
-        <button
-          class="secondary-button google-button"
-          (click)="signInWithGoogle()">
-          SIGN IN WITH GOOGLE
-        </button>
-
-      }
-
-    </section>
-
-  } @else if (account(); as signedIn) {
-
-  <!-- =========================
        HEADER / PLAYER
        ========================= -->
 
   <header class="app-header">
-
-    <div class="account-bar">
-      <span>Signed in as {{ signedIn.displayName }}</span>
-      <button
-        class="text-button"
-        (click)="signOut()">
-        SIGN OUT
-      </button>
-    </div>
 
     <p class="eyebrow">QUEST LOG // ONLINE</p>
 
@@ -172,20 +71,15 @@
   </header>
 
 
-  <!-- =========================
-       NEW QUEST
-       ========================= -->
-
-  <section class="quest-creator">
-
-  <p class="section-label">NEW QUEST</p>
+<!-- =========================
+     NEW QUEST
+     ========================= -->
 
 <div class="quest-form">
 
   <input
     type="text"
     placeholder="Quest"
-    aria-label="Quest"
     maxlength="255"
     [(ngModel)]="newQuestTitle"
   >
@@ -193,12 +87,11 @@
   <input
     type="text"
     placeholder="Notes (optional)"
-    aria-label="Notes"
     maxlength="255"
     [(ngModel)]="newQuestDescription"
   >
 
-  <select aria-label="Quest type" [(ngModel)]="newQuestType">
+  <select [(ngModel)]="newQuestType">
     @for (type of questTypes; track type.name) {
       <option [value]="type.name">
         {{ type.name }} // +{{ type.xp }} XP
@@ -268,8 +161,6 @@
 
 </div>
 
-  </section>
-
   <!-- =========================
        ACTIVE QUESTS
        ========================= -->
@@ -283,10 +174,6 @@
     @if (quests().length === 0) {
       <p class="empty-state">
         Quest log suspiciously empty.
-      </p>
-    } @else if (activeQuestCount === 0) {
-      <p class="empty-state">
-        All caught up. Add a quest above, or get sidetracked below.
       </p>
     }
 
@@ -422,12 +309,6 @@
     <p class="section-label">QUEST ARCHIVE</p>
 
     <h2>Completed</h2>
-
-    @if (completedQuestListCount === 0) {
-      <p class="empty-state">
-        Nothing completed yet. Your finished quests will land here.
-      </p>
-    }
 
     @for (quest of quests(); track quest.id) {
 
@@ -951,16 +832,6 @@
 
       </div>
 
-    </section>
-
-  }
-
-  } @else {
-
-    <section class="auth-card">
-      <p class="eyebrow">QUEST LOG // CONNECTING</p>
-      <h1>SideTracked</h1>
-      <p class="tagline">Checking whether you're signed in...</p>
     </section>
 
   }
