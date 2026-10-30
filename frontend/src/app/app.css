@@ -192,10 +192,6 @@ p {
   border: 1px solid var(--border);
 }
 
-.quest-creator .section-label {
-  margin-bottom: 14px;
-}
-
 .quest-creator h2 {
   margin-top: 0;
 }
@@ -238,87 +234,19 @@ select:focus {
 }
 
 /* =========================
-   ACCOUNT
-   ========================= */
-
-.auth-card {
-  max-width: 420px;
-
-  margin: 40px auto;
-}
-
-.auth-form {
-  display: grid;
-  gap: 10px;
-
-  margin-top: 8px;
-}
-
-.auth-divider {
-  margin: 16px 0 10px;
-
-  color: var(--dim);
-
-  font-size: 12px;
-  text-align: center;
-}
-
-.google-button {
-  width: 100%;
-}
-
-.account-bar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 10px;
-
-  color: var(--muted);
-
-  font-size: 12px;
-}
-
-
-/* =========================
    REPEATING QUESTS
    ========================= */
 
 .repeat-toggle {
   grid-column: 1 / -1;
-  justify-self: start;
 
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 10px;
-
-  cursor: pointer;
+  gap: 8px;
 
   color: var(--muted);
 
   font-size: 14px;
-}
-
-.repeat-toggle:hover {
-  color: var(--text);
-}
-
-/*
- * The form gives every input full width and box padding; a
- * checkbox must stay a small square next to its text.
- */
-.quest-form .repeat-toggle input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-
-  margin: 0;
-  padding: 0;
-
-  flex: none;
-
-  cursor: pointer;
-
-  accent-color: var(--accent);
 }
 
 .repeat-fields {
@@ -326,32 +254,18 @@ select:focus {
 
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 18px;
-
-  padding: 12px 14px;
+  gap: 8px 14px;
 
   color: var(--muted);
-  background: var(--panel-dark);
-
-  border: 1px dashed var(--border);
 
   font-size: 14px;
 }
 
-.repeat-fields label {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-.quest-form .repeat-fields input {
+.repeat-fields input {
   width: 4.5em;
 
+  margin: 0 4px;
   padding: 6px 8px;
-
-  text-align: center;
 }
 
 .repeat-timeline {
@@ -498,19 +412,6 @@ button:disabled {
   opacity: 0.6;
 }
 
-/*
- * A clear outline when moving around with the keyboard
- * (not shown for mouse clicks).
- */
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid var(--accent-light);
-  outline-offset: 2px;
-}
-
 .secondary-button {
   color: var(--text);
   background: transparent;
@@ -595,18 +496,9 @@ textarea:focus-visible {
 
 .quest-actions {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
 
   margin-top: 15px;
-}
-
-.quest-card h3 {
-  margin: 8px 0 4px;
-}
-
-.quest-card p {
-  margin: 4px 0;
 }
 
 .empty-state {
